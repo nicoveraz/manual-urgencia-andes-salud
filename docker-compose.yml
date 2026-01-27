@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: wiki-db
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_USER: wikijs
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - wiki-network
+
+  wiki:
+    image: ghcr.io/requarks/wiki:2
+    container_name: wiki
+    depends_on:
+      - db
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: wikijs
+      DB_PASS: ${DB_PASSWORD}
+      DB_NAME: wiki
+    volumes:
+      - wiki-data:/wiki/data
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - wiki-network
+
+volumes:
+  db-data:
+  wiki-data:
+
+networks:
+  wiki-network:
+    driver: bridge
