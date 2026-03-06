@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>urgpedia — Red de Manuales de Urgencia</title>
+  <meta name="description" content="Plataforma de manuales clínicos de urgencia para la red de clínicas Andes Salud.">
+  <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/assets/urgpedia-favicon.svg">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #04488e;
+      --blue-dark:  #033872;
+      --blue-light: #e8f0fb;
+      --slate:      #455A64;
+      --grey-light: #f5f7fa;
+      --grey-mid:   #e0e6ed;
+      --text:       #1a2535;
+      --text-muted: #64748b;
+      --white:      #ffffff;
+      --radius:     14px;
+      --shadow:     0 4px 24px rgba(4,72,142,.10);
+      --shadow-hover: 0 8px 36px rgba(4,72,142,.18);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--white);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NAV ─────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--white);
+      border-bottom: 1px solid var(--grey-mid);
+      padding: 0 clamp(16px, 5vw, 64px);
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(8px);
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .nav-brand svg { width: 32px; height: 32px; flex-shrink: 0; }
+    .nav-brand-name {
+      font-size: 1.2rem; font-weight: 700;
+      color: var(--blue); letter-spacing: -.01em;
+    }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a {
+      font-size: .875rem; color: var(--text-muted); text-decoration: none;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--blue); }
+
+    /* ── HERO ────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+      color: var(--white);
+      padding: clamp(56px, 10vw, 100px) clamp(16px, 5vw, 64px);
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .hero-content { position: relative; max-width: 640px; }
+    .hero-icon {
+      width: 72px; height: 72px; margin: 0 auto 20px;
+      display: block;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800; letter-spacing: -.03em;
+      line-height: 1.1; margin-bottom: 16px;
+    }
+    .hero h1 span { opacity: .7; font-weight: 400; }
+    .hero p {
+      font-size: clamp(.95rem, 2vw, 1.125rem);
+      opacity: .85; line-height: 1.6; margin-bottom: 32px;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: .8rem; font-weight: 500;
+      margin-bottom: 20px;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #4ade80; flex-shrink: 0;
+    }
+
+    /* ── CLINICS ─────────────────────────────────── */
+    .section {
+      padding: clamp(48px, 8vw, 80px) clamp(16px, 5vw, 64px);
+      flex: 1;
+    }
+    .section-header {
+      text-align: center; margin-bottom: 48px;
+    }
+    .section-header h2 {
+      font-size: clamp(1.4rem, 3vw, 1.875rem);
+      font-weight: 700; letter-spacing: -.02em;
+      margin-bottom: 8px;
+    }
+    .section-header p {
+      color: var(--text-muted); font-size: .95rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1100px; margin: 0 auto;
+    }
+
+    /* ── CLINIC CARD ─────────────────────────────── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--grey-mid);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      display: flex; flex-direction: column; gap: 16px;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+      text-decoration: none; color: inherit;
+      position: relative; overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--blue);
+    }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), #2979ff);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .card.coming-soon {
+      opacity: .6; pointer-events: none; cursor: default;
+    }
+    .card.coming-soon::before {
+      background: var(--grey-mid);
+    }
+    .card.coming-soon:hover {
+      transform: none;
+      box-shadow: var(--shadow);
+      border-color: var(--grey-mid);
+    }
+
+    .card-header {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    }
+    .card-icon {
+      width: 44px; height: 44px;
+      background: var(--blue-light);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-icon svg { width: 24px; height: 24px; }
+
+    .badge {
+      font-size: .7rem; font-weight: 600; letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: 3px 9px; border-radius: 100px;
+    }
+    .badge-active {
+      background: #dcfce7; color: #166534;
+    }
+    .badge-soon {
+      background: var(--grey-light); color: var(--text-muted);
+    }
+
+    .card-body h3 {
+      font-size: 1.05rem; font-weight: 700; margin-bottom: 4px;
+    }
+    .card-location {
+      font-size: .82rem; color: var(--text-muted);
+      display: flex; align-items: center; gap: 4px; margin-bottom: 8px;
+    }
+    .card-location svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .card-desc {
+      font-size: .875rem; color: var(--text-muted); line-height: 1.5;
+    }
+
+    .card-footer {
+      margin-top: auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-link {
+      font-size: .82rem; font-weight: 600; color: var(--blue);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .card-link svg { width: 14px; height: 14px; }
+
+    /* ── ADD CARD (placeholder) ──────────────────── */
+    .card-add {
+      border: 2px dashed var(--grey-mid);
+      box-shadow: none;
+      background: var(--grey-light);
+      align-items: center; justify-content: center;
+      text-align: center; gap: 12px;
+      min-height: 200px;
+      cursor: default;
+    }
+    .card-add::before { display: none; }
+    .card-add:hover {
+      transform: none; box-shadow: none; border-color: var(--grey-mid);
+    }
+    .card-add-icon {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--grey-mid);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto;
+    }
+    .card-add-icon svg { width: 20px; height: 20px; color: var(--text-muted); }
+    .card-add p { font-size: .85rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── FOOTER ──────────────────────────────────── */
+    footer {
+      background: var(--text);
+      color: rgba(255,255,255,.6);
+      padding: 28px clamp(16px, 5vw, 64px);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      font-size: .8rem;
+    }
+    footer .footer-brand {
+      display: flex; align-items: center; gap: 8px; color: var(--white);
+      font-weight: 600; font-size: .875rem;
+    }
+    footer .footer-brand svg { width: 22px; height: 22px; }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      footer { justify-content: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-brand">
+    <!-- urgpedia icon (blue, for white bg) -->
+    <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#04488e" d="M241.5-81.5v-170.88q-57.5-51.93-88.75-121.17-31.25-69.24-31.25-146.3 0-149.65 104.57-254.4Q330.63-879 480.02-879q124.48 0 220.58 73.45Q796.7-732.11 826-615l55 218q3.5 13.86-4.89 24.68T853-361.5h-94V-219q0 24.19-16.89 40.84-16.89 16.66-40.61 16.66H599v80h-57.5V-219h160v-200h114l-45-181.5Q746-698 664.75-759.75T480.04-821.5q-125.54 0-213.29 86.94Q179-647.63 179-522.46q0 64.92 26.32 123.14Q231.65-341.09 280.5-296l18.5 17.5v197h-57.5Z"/>
+      <rect x="440" y="-740" width="80" height="380" rx="18" fill="#033872"/>
+      <rect x="300" y="-590" width="360" height="80" rx="18" fill="#033872"/>
+    </svg>
+    <span class="nav-brand-name">urgpedia</span>
+  </a>
+  <div class="nav-links">
+    <a href="#clinicas">Clínicas</a>
+    <a href="mailto:contacto@urgpedia.cl">Contacto</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Red Andes Salud — Chile</div>
+    <!-- urgpedia icon (grey, for dark bg) -->
+    <svg class="hero-icon" viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#e3e3e3" d="M241.5-81.5v-170.88q-57.5-51.93-88.75-121.17-31.25-69.24-31.25-146.3 0-149.65 104.57-254.4Q330.63-879 480.02-879q124.48 0 220.58 73.45Q796.7-732.11 826-615l55 218q3.5 13.86-4.89 24.68T853-361.5h-94V-219q0 24.19-16.89 40.84-16.89 16.66-40.61 16.66H599v80h-57.5V-219h160v-200h114l-45-181.5Q746-698 664.75-759.75T480.04-821.5q-125.54 0-213.29 86.94Q179-647.63 179-522.46q0 64.92 26.32 123.14Q231.65-341.09 280.5-296l18.5 17.5v197h-57.5Z"/>
+      <rect x="440" y="-740" width="80" height="380" rx="18" fill="rgba(227,227,227,0.35)"/>
+      <rect x="300" y="-590" width="360" height="80" rx="18" fill="rgba(227,227,227,0.35)"/>
+    </svg>
+    <h1>urgpedia<br><span>Manuales de Urgencia</span></h1>
+    <p>Plataforma de conocimiento clínico para los equipos de urgencia de la red Andes Salud. Acceso rápido a protocolos, guías y procedimientos actualizados.</p>
+  </div>
+</section>
+
+<!-- CLINICS -->
+<section class="section" id="clinicas">
+  <div class="section-header">
+    <h2>Clínicas de la red</h2>
+    <p>Selecciona tu clínica para acceder al manual de urgencia</p>
+  </div>
+
+  <div class="cards">
+
+    <!-- ── CLÍNICA ACTIVA: Puerto Montt ── -->
+    <a href="https://caspm.urgpedia.cl" class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <!-- location/hospital icon -->
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 22V8l9-6 9 6v14H3z" stroke="#04488e" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M9 22V16h6v6" stroke="#04488e" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 8v4M10 10h4" stroke="#04488e" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="badge badge-active">Activo</span>
+      </div>
+      <div class="card-body">
+        <h3>Clínica Andes Salud Puerto Montt</h3>
+        <div class="card-location">
+          <!-- pin icon -->
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.686 2 6 4.686 6 8c0 5.25 6 14 6 14s6-8.75 6-14c0-3.314-2.686-6-6-6z" stroke="#64748b" stroke-width="1.8"/>
+            <circle cx="12" cy="8" r="2" stroke="#64748b" stroke-width="1.8"/>
+          </svg>
+          Puerto Montt, Los Lagos
+        </div>
+        <p class="card-desc">Manual del Servicio de Urgencia. Protocolos, guías clínicas y procedimientos para el equipo de urgencia.</p>
+      </div>
+      <div class="card-footer">
+        <span class="card-link">
+          Acceder al manual
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="#04488e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </div>
+    </a>
+
+    <!-- ── PRÓXIMAMENTE: Placeholder 1 ── -->
+    <!-- Para agregar una nueva clínica, copia un bloque .card y actualiza:
+         href, nombre, ciudad, descripción y cambia badge-soon por badge-active
+         y quita la clase "coming-soon" del div.card -->
+    <div class="card coming-soon">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 22V8l9-6 9 6v14H3z" stroke="#455A64" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M9 22V16h6v6" stroke="#455A64" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 8v4M10 10h4" stroke="#455A64" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="badge badge-soon">Próximamente</span>
+      </div>
+      <div class="card-body">
+        <h3>Próxima clínica</h3>
+        <div class="card-location">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.686 2 6 4.686 6 8c0 5.25 6 14 6 14s6-8.75 6-14c0-3.314-2.686-6-6-6z" stroke="#64748b" stroke-width="1.8"/>
+            <circle cx="12" cy="8" r="2" stroke="#64748b" stroke-width="1.8"/>
+          </svg>
+          Red Andes Salud
+        </div>
+        <p class="card-desc">Manual de urgencia en preparación. Próximamente disponible para el equipo clínico.</p>
+      </div>
+      <div class="card-footer">
+        <span class="card-link" style="color:var(--text-muted);">En desarrollo</span>
+      </div>
+    </div>
+
+    <!-- ── AGREGAR CLÍNICA (solo visible para admins, opcional) ── -->
+    <div class="card card-add">
+      <div class="card-add-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5v14M5 12h14" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p>¿Nueva clínica?<br>Contacta al equipo urgpedia para incorporarla a la red.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#e3e3e3" d="M241.5-81.5v-170.88q-57.5-51.93-88.75-121.17-31.25-69.24-31.25-146.3 0-149.65 104.57-254.4Q330.63-879 480.02-879q124.48 0 220.58 73.45Q796.7-732.11 826-615l55 218q3.5 13.86-4.89 24.68T853-361.5h-94V-219q0 24.19-16.89 40.84-16.89 16.66-40.61 16.66H599v80h-57.5V-219h160v-200h114l-45-181.5Q746-698 664.75-759.75T480.04-821.5q-125.54 0-213.29 86.94Q179-647.63 179-522.46q0 64.92 26.32 123.14Q231.65-341.09 280.5-296l18.5 17.5v197h-57.5Z"/>
+    </svg>
+    urgpedia
+  </div>
+  <span>Red Andes Salud · Chile · 2025</span>
+  <span>Uso exclusivo personal clínico autorizado</span>
+</footer>
+
+</body>
+</html>
