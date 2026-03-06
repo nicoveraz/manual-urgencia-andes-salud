@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1565c0"/>
+      <stop offset="100%" style="stop-color:#0d47a1"/>
+    </linearGradient>
+    <linearGradient id="ecgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:0.6"/>
+      <stop offset="50%" style="stop-color:#00e5ff"/>
+      <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:0.6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="248" fill="url(#bgGrad)"/>
+
+  <!-- Letter U — two vertical bars + curved bottom -->
+  <!-- Left vertical bar -->
+  <rect x="108" y="110" width="72" height="210" rx="36" fill="white"/>
+  <!-- Right vertical bar -->
+  <rect x="332" y="110" width="72" height="210" rx="36" fill="white"/>
+  <!-- Bottom curve connecting both bars -->
+  <path d="M108,290 L108,330 Q108,420 256,420 Q404,420 404,330 L404,290 L332,290 L332,330 Q332,368 256,368 Q180,368 180,330 L180,290 Z" fill="white"/>
+
+  <!-- ECG / pulse line crossing through the U -->
+  <polyline
+    points="60,256  148,256  170,200  194,310  214,168  236,256  300,256  322,215  338,275  356,256  452,256"
+    fill="none"
+    stroke="url(#ecgGrad)"
+    stroke-width="22"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+</svg>
