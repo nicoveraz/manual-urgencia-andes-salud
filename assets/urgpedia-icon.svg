@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Cabeza -->
+  <circle cx="256" cy="185" r="135" fill="#9E9E9E"/>
+  <!-- Hombros -->
+  <path d="M36,480 C36,370 146,330 256,330 C366,330 476,370 476,480 Z" fill="#9E9E9E"/>
+  <!-- Cruz de urgencia blanca, centrada en la cabeza -->
+  <rect x="228" y="90" width="56" height="190" rx="14" fill="white"/>
+  <rect x="138" y="157" width="236" height="56" rx="14" fill="white"/>
+</svg>

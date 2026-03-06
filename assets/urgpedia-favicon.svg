@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fondo cuadrado redondeado -->
+  <rect width="512" height="512" rx="90" fill="#455A64"/>
+  <!-- Cabeza -->
+  <circle cx="256" cy="195" r="120" fill="#9E9E9E"/>
+  <!-- Hombros (recortados por el borde inferior) -->
+  <path d="M56,512 C56,400 156,345 256,345 C356,345 456,400 456,512 Z" fill="#9E9E9E"/>
+  <!-- Cruz de urgencia blanca -->
+  <rect x="230" y="105" width="52" height="180" rx="13" fill="white"/>
+  <rect x="148" y="163" width="216" height="52" rx="13" fill="white"/>
+</svg>
