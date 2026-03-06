@@ -24,3 +24,8 @@ node_modules/
 backups/
 *.sql
 *.dump
+
+# Scripts con datos sensibles (PII, credenciales)
+scripts/create-users-auth0.py
+scripts/*-users-*.py
+*.csv
