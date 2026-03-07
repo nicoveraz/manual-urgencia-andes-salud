@@ -1,86 +1,95 @@
-# Manual de Procedimientos - Servicio de Urgencia
+# urgpedia — Red de Manuales de Urgencia
 
-Sistema de documentación para el Servicio de Urgencia de Clínica Andes Salud.
+Plataforma de conocimiento clínico para los equipos de urgencia de la **red Andes Salud**. Arranca con la Clínica Andes Salud Puerto Montt (CASPM) y está diseñada para expandirse a las demás clínicas de la red.
 
-## Stack Tecnológico
+## Stack tecnológico
 
-- **Wiki.js 2.5** - Sistema de documentación
-- **PostgreSQL 15** - Base de datos
-- **Auth0** - Autenticación y gestión de usuarios
-- **Oracle Cloud Free Tier** - Hosting
+| Componente | Tecnología |
+|---|---|
+| Wiki / CMS | Wiki.js 2.5 |
+| Base de datos | PostgreSQL 15 |
+| Autenticación | Auth0 (SSO compartido entre clínicas) |
+| Reverse proxy / SSL | Caddy 2 (Let's Encrypt automático) |
+| Hosting | Oracle Cloud Free Tier — Ubuntu 22.04 |
 
-## Requisitos
+## Dominios
 
-- Docker y Docker Compose
-- Cuenta en Auth0 (free tier)
-- Instancia en Oracle Cloud (free tier)
+| Dominio | Descripción |
+|---|---|
+| `urgpedia.cl` | Landing page — directorio de clínicas de la red |
+| `caspm.urgpedia.cl` | Wiki.js — Manual de Urgencia CASPM Puerto Montt |
+| `*.urgpedia.cl` | Futuros subdominios por clínica |
 
-## Inicio Rápido (Desarrollo Local)
-
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/tu-usuario/manual-urgencia-andes-salud.git
-   cd manual-urgencia-andes-salud
-   ```
-
-2. Crear archivo de configuración:
-   ```bash
-   cp .env.example .env
-   # Editar .env con tus credenciales
-   ```
-
-3. Iniciar los servicios:
-   ```bash
-   docker-compose up -d
-   ```
-
-4. Acceder a Wiki.js en `http://localhost:3000`
-
-## Estructura del Proyecto
+## Estructura del proyecto
 
 ```
 manual-urgencia-andes-salud/
-├── docker-compose.yml      # Configuración de servicios
-├── .env.example            # Template de variables de entorno
 ├── assets/
-│   └── logo.png            # Logo corporativo
-├── theme/
-│   └── custom.css          # Estilos de branding
+│   ├── urgpedia-icon.svg          # Ícono principal (fondo azul/oscuro)
+│   ├── urgpedia-icon-blue.svg     # Ícono azul (fondo blanco/claro)
+│   └── urgpedia-favicon.svg       # Favicon con fondo #455A64
+├── landing/
+│   └── index.html                 # Landing page urgpedia.cl
+├── docs/
+│   ├── ESTADO-ACTUAL.md           # Estado técnico completo (referencia de desarrollo)
+│   └── DEPLOYMENT.md              # Guía de primer despliegue
 ├── scripts/
-│   ├── setup-oracle.sh     # Script de setup para Oracle Cloud
-│   └── backup.sh           # Script de backup de base de datos
-└── docs/
-    └── DEPLOYMENT.md       # Guía de despliegue en producción
+│   ├── backup.sh                  # Backup de base de datos
+│   └── setup-oracle.sh            # Setup inicial Oracle Cloud
+├── theme/
+│   └── custom.css                 # Estilos personalizados Wiki.js
+├── docker-compose.yml
+└── .env.example
 ```
 
-## Configuración de Auth0
+## Branding
 
-Ver [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) para instrucciones detalladas de configuración de Auth0.
+| Asset | Uso |
+|---|---|
+| `urgpedia-icon.svg` | Logo en header de Wiki.js (fondo azul `#04488e`) |
+| `urgpedia-icon-blue.svg` | Logo en nav de la landing (fondo blanco) |
+| `urgpedia-favicon.svg` | Favicon en browser tab (autónomo, fondo `#455A64`) |
 
-## Roles de Usuario
+Color primario: `#04488e`
+
+## Agregar una nueva clínica a la red
+
+1. **Servidor**: nuevo stack Docker (wiki + wiki-db) en puerto distinto
+2. **Caddy**: agregar bloque `nueva-clinica.urgpedia.cl` en `/etc/caddy/Caddyfile`
+3. **Auth0**: agregar `https://nueva-clinica.urgpedia.cl/login/callback` en Allowed Callback URLs
+4. **Landing**: copiar bloque `.card` en `landing/index.html`, activar y actualizar datos
+
+Ver [docs/ESTADO-ACTUAL.md](docs/ESTADO-ACTUAL.md) para el estado técnico completo.
+
+## Roles de usuario
 
 | Rol | Permisos |
-|-----|----------|
+|---|---|
 | `admin` | Gestión completa del sistema |
 | `editor` | Crear y editar contenido |
 | `viewer` | Solo lectura |
 
-## Branding
+## Inicio rápido (desarrollo local)
 
-- **Color Primario:** `#04488e`
-- Los estilos personalizados están en `theme/custom.css`
-
-## Despliegue
-
-Consultar [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) para instrucciones de despliegue en Oracle Cloud.
-
-## Backup
-
-Ejecutar backup manual:
 ```bash
-./scripts/backup.sh
+git clone https://github.com/nicoveraz/manual-urgencia-andes-salud.git
+cd manual-urgencia-andes-salud
+cp .env.example .env
+# Editar .env con credenciales
+docker compose up -d
+# Acceder en http://localhost:3000
 ```
+
+## Despliegue en producción
+
+Ver [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) para instrucciones detalladas.
+
+## Seguridad
+
+- Las variables sensibles van en `.env` (no commitear)
+- Scripts con PII de usuarios están en `.gitignore`
+- GraphQL introspection deshabilitado en producción
 
 ## Licencia
 
-Uso interno - Clínica Andes Salud
+Uso interno — Red Andes Salud · Chile
