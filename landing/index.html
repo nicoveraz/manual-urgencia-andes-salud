@@ -49,7 +49,7 @@
       display: flex; align-items: center; gap: 10px;
       text-decoration: none;
     }
-    .nav-brand svg { width: 32px; height: 32px; flex-shrink: 0; }
+    .nav-brand img { width: 32px; height: 32px; flex-shrink: 0; }
     .nav-brand-name {
       font-size: 1.2rem; font-weight: 700;
       color: var(--blue); letter-spacing: -.01em;
@@ -248,7 +248,7 @@
       display: flex; align-items: center; gap: 8px; color: var(--white);
       font-weight: 600; font-size: .875rem;
     }
-    footer .footer-brand svg { width: 22px; height: 22px; }
+    footer .footer-brand img { width: 22px; height: 22px; }
 
     /* ── RESPONSIVE ──────────────────────────────── */
     @media (max-width: 600px) {
@@ -262,12 +262,8 @@
 <!-- NAV -->
 <nav>
   <a href="/" class="nav-brand">
-    <!-- urgpedia icon (blue, for white bg) -->
-    <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#04488e" d="M241.5-81.5v-170.88q-57.5-51.93-88.75-121.17-31.25-69.24-31.25-146.3 0-149.65 104.57-254.4Q330.63-879 480.02-879q124.48 0 220.58 73.45Q796.7-732.11 826-615l55 218q3.5 13.86-4.89 24.68T853-361.5h-94V-219q0 24.19-16.89 40.84-16.89 16.66-40.61 16.66H599v80h-57.5V-219h160v-200h114l-45-181.5Q746-698 664.75-759.75T480.04-821.5q-125.54 0-213.29 86.94Q179-647.63 179-522.46q0 64.92 26.32 123.14Q231.65-341.09 280.5-296l18.5 17.5v197h-57.5Z"/>
-      <rect x="440" y="-740" width="80" height="380" rx="18" fill="#033872"/>
-      <rect x="300" y="-590" width="360" height="80" rx="18" fill="#033872"/>
-    </svg>
+    <img src="https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/assets/urgpedia-icon-blue.svg"
+         alt="urgpedia" width="32" height="32">
     <span class="nav-brand-name">urgpedia</span>
   </a>
   <div class="nav-links">
@@ -280,12 +276,9 @@
 <section class="hero">
   <div class="hero-content">
     <div class="hero-badge">Red Andes Salud — Chile</div>
-    <!-- urgpedia icon (grey, for dark bg) -->
-    <svg class="hero-icon" viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#e3e3e3" d="M241.5-81.5v-170.88q-57.5-51.93-88.75-121.17-31.25-69.24-31.25-146.3 0-149.65 104.57-254.4Q330.63-879 480.02-879q124.48 0 220.58 73.45Q796.7-732.11 826-615l55 218q3.5 13.86-4.89 24.68T853-361.5h-94V-219q0 24.19-16.89 40.84-16.89 16.66-40.61 16.66H599v80h-57.5V-219h160v-200h114l-45-181.5Q746-698 664.75-759.75T480.04-821.5q-125.54 0-213.29 86.94Q179-647.63 179-522.46q0 64.92 26.32 123.14Q231.65-341.09 280.5-296l18.5 17.5v197h-57.5Z"/>
-      <rect x="440" y="-740" width="80" height="380" rx="18" fill="rgba(227,227,227,0.35)"/>
-      <rect x="300" y="-590" width="360" height="80" rx="18" fill="rgba(227,227,227,0.35)"/>
-    </svg>
+    <img class="hero-icon"
+         src="https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/assets/urgpedia-icon.svg"
+         alt="urgpedia" width="72" height="72">
     <h1>urgpedia<br><span>Manuales de Urgencia</span></h1>
     <p>Plataforma de conocimiento clínico para los equipos de urgencia de la red Andes Salud. Acceso rápido a protocolos, guías y procedimientos actualizados.</p>
   </div>
@@ -382,9 +375,8 @@
 <!-- FOOTER -->
 <footer>
   <div class="footer-brand">
-    <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#e3e3e3" d="M241.5-81.5v-170.88q-57.5-51.93-88.75-121.17-31.25-69.24-31.25-146.3 0-149.65 104.57-254.4Q330.63-879 480.02-879q124.48 0 220.58 73.45Q796.7-732.11 826-615l55 218q3.5 13.86-4.89 24.68T853-361.5h-94V-219q0 24.19-16.89 40.84-16.89 16.66-40.61 16.66H599v80h-57.5V-219h160v-200h114l-45-181.5Q746-698 664.75-759.75T480.04-821.5q-125.54 0-213.29 86.94Q179-647.63 179-522.46q0 64.92 26.32 123.14Q231.65-341.09 280.5-296l18.5 17.5v197h-57.5Z"/>
-    </svg>
+    <img src="https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/assets/urgpedia-icon.svg"
+         alt="urgpedia" width="22" height="22">
     urgpedia
   </div>
   <span>Red Andes Salud · Chile · 2025</span>
