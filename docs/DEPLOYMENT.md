@@ -21,7 +21,8 @@
 4. Agregar Ingress Rules:
    - **Puerto 80** (HTTP): Source CIDR `0.0.0.0/0`
    - **Puerto 443** (HTTPS): Source CIDR `0.0.0.0/0`
-   - **Puerto 3000** (Wiki.js): Source CIDR `0.0.0.0/0` (temporal, solo para testing)
+   > **Seguridad**: NO abrir el puerto 3000 al público. Wiki.js debe ser accesible
+   > únicamente a través del reverse proxy Caddy (localhost:3000).
 
 ### Conectar a la Instancia
 

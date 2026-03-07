@@ -34,11 +34,12 @@ else
     echo "Docker Compose ya está instalado."
 fi
 
-# Configurar firewall
+# Configurar firewall (solo HTTP/HTTPS — Wiki.js accesible solo via Caddy)
 echo "[4/5] Configurando firewall..."
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 3000 -j ACCEPT
+# NOTA: Puerto 3000 NO se abre al público. Wiki.js solo es accesible
+# via reverse proxy (Caddy) en localhost:3000.
 sudo netfilter-persistent save
 
 # Crear directorio para backups

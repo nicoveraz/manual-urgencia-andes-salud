@@ -10,10 +10,13 @@
 | Elemento | Valor |
 |---|---|
 | Servidor | Oracle Cloud · Ubuntu 22.04 |
-| IP pública | `146.235.242.103` |
-| SSH key | `~/Downloads/ssh-key-2026-01-27.key` |
+| IP pública | Ver `.env.local` (no commitear) |
+| SSH key | Ver `.env.local` (no commitear) |
 | Reverse proxy | Caddy 2 · `/etc/caddy/Caddyfile` |
 | SSL | Let's Encrypt automático vía Caddy |
+
+> **Seguridad**: La IP del servidor y la ruta de la llave SSH están en `.env.local` (excluido de Git).
+> Copiar de `.env.example` y completar con los valores reales.
 
 **Contenedores Docker:**
 
@@ -29,17 +32,33 @@
 **Caddyfile actual** (`/etc/caddy/Caddyfile`):
 
 ```caddy
+(security-headers) {
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        -Server
+    }
+}
+
 urgpedia.cl {
+    import security-headers
+    header Content-Security-Policy "default-src 'self'; style-src 'unsafe-inline' 'self'; img-src 'self' data:"
     root * /srv/urgpedia
     file_server
 }
 
 caspm.urgpedia.cl {
+    import security-headers
     @root path /
-    redir @root /login/81ff3df8-2a3f-4073-b335-38d113f6da22 302
+    redir @root /login/{$AUTH0_STRATEGY_UUID} 302
     reverse_proxy localhost:3000
 }
 ```
+
+> **Nota**: el strategy UUID de Auth0 se lee de la variable de entorno `AUTH0_STRATEGY_UUID` para no hardcodearlo en el Caddyfile. Definirlo en el environment del servidor o en `/etc/caddy/environment`.
 
 | URL | Resultado |
 |---|---|
@@ -47,7 +66,7 @@ caspm.urgpedia.cl {
 | `caspm.urgpedia.cl/` | Redirect 302 → Auth0 login |
 | `caspm.urgpedia.cl/*` | Wiki.js (reverse proxy a localhost:3000) |
 
-> **Pendiente DNS**: agregar registro `A urgpedia.cl → 146.235.242.103` en el registrador de dominio.
+> **Pendiente DNS**: agregar registro `A urgpedia.cl → $SERVER_IP` en el registrador de dominio (ver .env.local).
 
 ---
 
@@ -134,11 +153,14 @@ SELECT value->>'logoUrl', value->>'injectHead' FROM settings WHERE key = 'themin
 
 **Diseño**: Material Design "cognition" icon (silueta de cabeza, espiral removida) + cruz médica knockout (transparente, toma el color del fondo).
 
-URLs raw GitHub:
-```
-https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/assets/urgpedia-icon.svg
-https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/assets/urgpedia-icon-blue.svg
-https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/assets/urgpedia-favicon.svg
+Los assets se sirven localmente desde `/srv/urgpedia/assets/` en el servidor (no desde GitHub raw).
+
+**Deploy de assets al servidor** (después de actualizar SVGs):
+```bash
+sudo mkdir -p /srv/urgpedia/assets
+sudo cp assets/urgpedia-icon.svg /srv/urgpedia/assets/
+sudo cp assets/urgpedia-icon-blue.svg /srv/urgpedia/assets/
+sudo cp assets/urgpedia-favicon.svg /srv/urgpedia/assets/
 ```
 
 ---
@@ -150,11 +172,11 @@ https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/ass
 - **Tecnología**: HTML + CSS puro (sin frameworks, sin build step)
 - **Íconos**: referencias a GitHub raw URLs de `assets/`
 
-**Deploy al servidor:**
+**Deploy al servidor** (copiar landing + assets):
 ```bash
-sudo curl -fsSL \
-  'https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/landing/index.html' \
-  -o /srv/urgpedia/index.html
+sudo cp landing/index.html /srv/urgpedia/index.html
+sudo mkdir -p /srv/urgpedia/assets
+sudo cp assets/*.svg /srv/urgpedia/assets/
 ```
 
 **Para agregar una nueva clínica en la landing:**
@@ -190,11 +212,11 @@ scripts/*-users-*.py
 
 ## 9. Tareas pendientes
 
-- [ ] **DNS**: agregar registro `A urgpedia.cl → 146.235.242.103` en registrador de dominio
+- [ ] **DNS**: agregar registro `A urgpedia.cl → $SERVER_IP` en registrador de dominio (ver .env.local)
 - [ ] **Search index**: Admin → Search Engine → Rebuild Index (tras cambio de `db` a `postgres`)
 - [ ] **Login.pug**: evaluar si el JS redirect sigue siendo necesario (Caddy ya redirige `/`)
 - [ ] **Nueva clínica**: nuevo stack Docker + subdominio en Caddy + callback Auth0 + card en landing
-- [ ] **Volúmenes Docker**: considerar montar login.pug y servers.js como volúmenes para persistir customizaciones
+- [x] **Volúmenes Docker**: login.pug y servers.js montados como volúmenes en docker-compose.yml (ver `overrides/`)
 
 ---
 
@@ -202,7 +224,7 @@ scripts/*-users-*.py
 
 ```bash
 # ── SERVIDOR ────────────────────────────────────────
-ssh -i ~/Downloads/ssh-key-2026-01-27.key ubuntu@146.235.242.103
+ssh -i $SSH_KEY_PATH ubuntu@$SERVER_IP    # Valores en .env.local
 
 # ── DOCKER ──────────────────────────────────────────
 docker ps                          # Ver contenedores corriendo
@@ -218,9 +240,8 @@ sudo systemctl reload caddy
 cat /etc/caddy/Caddyfile
 
 # ── LANDING PAGE ────────────────────────────────────
-sudo curl -fsSL \
-  'https://raw.githubusercontent.com/nicoveraz/manual-urgencia-andes-salud/main/landing/index.html' \
-  -o /srv/urgpedia/index.html
+sudo cp landing/index.html /srv/urgpedia/index.html
+sudo cp assets/*.svg /srv/urgpedia/assets/
 
 # ── EDITAR ARCHIVOS EN CONTENEDOR ───────────────────
 # (escribir primero en /tmp, luego docker cp)
@@ -237,6 +258,6 @@ docker cp /tmp/archivo.pug wiki:/wiki/server/views/archivo.pug
 | Redirect en Caddy (no solo JS) | Server-side, más rápido, no depende de JS |
 | `@root path /` en Caddy | `redir /` usa prefijo y redirige todo; `path /` es exact match |
 | PostgreSQL full-text search | Mejor calidad para contenido médico en español |
-| SVG inline → `<img>` con URL GitHub | Un solo source de verdad para los assets de marca |
+| SVG servidos localmente (no GitHub raw) | Independencia de GitHub; no falla si repo es privado |
 | GraphQL introspection deshabilitado | Evita exposición del schema de la API |
 | Archivos PII en `.gitignore` | `create-users-auth0.py` nunca fue commiteado (verificado) |
