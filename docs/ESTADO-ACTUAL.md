@@ -52,15 +52,22 @@ urgpedia.cl {
 
 caspm.urgpedia.cl {
     import security-headers
+    handle /assets/* {
+        root * /srv/urgpedia
+        file_server
+    }
     reverse_proxy localhost:3000
 }
 ```
 
 > **Nota**: no forzar redirects de `/` a `/login/{$AUTH0_STRATEGY_UUID}` desde Caddy. Wiki.js ya redirige a `/` al terminar el callback social; si el proxy reenvía esa ruta al login social se produce un loop.
+> Los assets se sirven desde `caspm.urgpedia.cl/assets/` (mismo origen que Wiki.js) para evitar el bloqueo por CSP `img-src 'self'` que impone Wiki.js.
 
 | URL | Resultado |
 |---|---|
 | `urgpedia.cl` | Landing page estática desde `/srv/urgpedia/` |
+| `urgpedia.cl/assets/*` | SVGs de branding (landing) |
+| `caspm.urgpedia.cl/assets/*` | SVGs de branding (Wiki.js — mismo origen) |
 | `caspm.urgpedia.cl/` | Wiki.js → Auto Login activo → redirige directo a Auth0 |
 | `caspm.urgpedia.cl/*` | Wiki.js (reverse proxy a localhost:3000) |
 
@@ -137,8 +144,8 @@ SELECT key, "isEnabled" FROM "commentProviders" WHERE key = 'default';
 ```sql
 SELECT value->>'logoUrl', value->>'injectHead' FROM settings WHERE key = 'theming';
 ```
-- `logoUrl`: URL raw GitHub de `assets/urgpedia-icon.svg`
-- `injectHead`: script JS que reemplaza los `<link rel="icon">` del HTML por `urgpedia-favicon.svg`
+- `logoUrl`: `https://caspm.urgpedia.cl/assets/urgpedia-icon.svg` (mismo origen → evita bloqueo CSP)
+- `injectHead`: script JS que reemplaza los `<link rel="icon">` por `https://caspm.urgpedia.cl/assets/urgpedia-favicon.svg`
 
 ---
 
