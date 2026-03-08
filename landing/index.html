@@ -269,7 +269,7 @@
       background: rgba(0,0,0,.2);
       padding: 24px clamp(16px,5vw,64px);
       display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 12px;
+      flex-wrap: wrap; gap: 16px;
       font-size: .78rem; color: var(--text-dim);
     }
     .footer-brand {
@@ -277,6 +277,14 @@
       color: var(--text-muted); font-weight: 600; font-size: .825rem;
     }
     .footer-brand img { width: 20px; height: 20px; }
+    .footer-links {
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none; font-size: .78rem;
+      transition: color .15s;
+    }
+    .footer-links a:hover { color: var(--text-muted); }
 
     /* ── RESPONSIVE ──────────────────────────────── */
     @media (max-width: 600px) {
@@ -404,8 +412,13 @@
     <img src="/assets/urgpedia-icon.svg" alt="urgpedia" width="20" height="20">
     urgpedia
   </div>
+  <nav class="footer-links">
+    <a href="/terminos">Términos de Servicio</a>
+    <a href="/atribuciones">Atribuciones</a>
+    <a href="/roadmap">Roadmap</a>
+    <a href="/status">Status</a>
+  </nav>
   <span>Chile · 2026</span>
-  <span>Uso exclusivo personal clínico autorizado</span>
 </footer>
 
 </body>
