@@ -1,18 +1,17 @@
 (function () {
-  // Fetch a URL server-side via same-origin Caddy proxy — no CSP issues.
-  // redirect: 'manual' avoids chasing backend redirects cross-origin.
+  // Any HTTP response (200, 302, 404…) means the server is reachable.
+  // Only a network exception (connection refused, timeout) means down.
   async function check(url) {
     try {
       var ac = new AbortController();
       var timer = setTimeout(function () { ac.abort(); }, 7000);
-      var resp = await fetch(url, {
+      await fetch(url, {
         signal: ac.signal,
         cache: 'no-store',
         redirect: 'manual',
       });
       clearTimeout(timer);
-      // ok = 2xx; opaqueredirect = 3xx (backend up but redirecting)
-      return resp.ok || resp.type === 'opaqueredirect';
+      return true;
     } catch (_) {
       return false;
     }
