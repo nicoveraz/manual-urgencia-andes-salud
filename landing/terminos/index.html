@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Términos de Servicio — urgpedia</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/urgpedia-favicon.svg">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0b1120; --bg-card: #0f1929;
+      --border: rgba(255,255,255,.07);
+      --text: #e8edf5; --text-muted: #6b7fa3; --text-dim: #4a5670;
+      --white: #ffffff;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(11,17,32,.85); border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    .nav-inner {
+      max-width: 1120px; margin: 0 auto; padding: 0;
+      height: 56px; display: flex; align-items: center;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-brand img { width: 28px; height: 28px; }
+    .nav-brand-name { font-size: 1.05rem; font-weight: 700; color: var(--white); }
+    main { flex: 1; }
+    .content { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+    h1 { font-size: clamp(1.4rem,3vw,1.9rem); font-weight: 700; letter-spacing: -.03em; margin-bottom: 8px; }
+    .meta { color: var(--text-dim); font-size: .8rem; margin-bottom: 48px; }
+    section { padding-top: 36px; margin-top: 36px; border-top: 1px solid var(--border); }
+    section:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+    h2 { font-size: .75rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
+    p { font-size: .9rem; color: var(--text-muted); line-height: 1.75; }
+    ul { padding-left: 18px; }
+    li { font-size: .9rem; color: var(--text-muted); line-height: 1.75; margin-bottom: 4px; }
+    footer { border-top: 1px solid var(--border); background: rgba(0,0,0,.2); }
+    .footer-inner {
+      max-width: 1120px; margin: 0 auto; padding: 40px 0 64px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .footer-brand { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 600; font-size: .825rem; }
+    .footer-brand img { width: 20px; height: 20px; }
+    .footer-copy { color: var(--text-dim); font-size: .78rem; }
+    .footer-links { display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { color: var(--text-dim); text-decoration: none; font-size: .78rem; transition: color .15s; width: fit-content; }
+    .footer-links a:hover { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <img src="/assets/urgpedia-icon.svg" alt="urgpedia" width="28" height="28">
+      <span class="nav-brand-name">urgpedia</span>
+    </a>
+  </div>
+</nav>
+<main>
+  <div class="content">
+    <h1>Términos de Servicio</h1>
+    <p class="meta">Vigente desde enero 2025</p>
+
+    <section>
+      <h2>Acceso autorizado</h2>
+      <p>urgpedia es una plataforma de acceso restringido, disponible únicamente para el personal médico y de salud con autorización vigente dentro de la red de clínicas. El acceso no autorizado está prohibido.</p>
+    </section>
+
+    <section>
+      <h2>Uso del contenido</h2>
+      <p>El contenido publicado tiene carácter de referencia clínica interna. No reemplaza el juicio clínico del profesional ni constituye una guía de práctica clínica validada externamente. Las decisiones clínicas son responsabilidad exclusiva del profesional tratante.</p>
+    </section>
+
+    <section>
+      <h2>Responsabilidad</h2>
+      <p>urgpedia no se responsabiliza por errores u omisiones en el contenido ni por las consecuencias derivadas de su aplicación. El contenido puede actualizarse sin previo aviso.</p>
+    </section>
+
+    <section>
+      <h2>Credenciales y privacidad</h2>
+      <ul>
+        <li>No compartas tus credenciales de acceso con terceros.</li>
+        <li>Eres responsable de toda actividad realizada bajo tu cuenta.</li>
+        <li>Los datos de autenticación son gestionados por Auth0 conforme a sus políticas de privacidad.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Disponibilidad</h2>
+      <p>El servicio se ofrece sin garantía de disponibilidad continua. Puede interrumpirse temporalmente por mantenimiento, actualizaciones o causas ajenas al control del administrador.</p>
+    </section>
+  </div>
+</main>
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="/assets/urgpedia-icon.svg" alt="urgpedia" width="20" height="20">
+      <span>urgpedia</span>
+      <span class="footer-copy">© 2026</span>
+    </div>
+    <nav class="footer-links">
+      <a href="/terminos">Términos de Servicio</a>
+      <a href="/atribuciones">Atribuciones</a>
+      <a href="/roadmap">Roadmap</a>
+      <a href="/status">Status</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
