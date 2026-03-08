@@ -3,6 +3,8 @@
 Registro del árbol de páginas de `caspm.urgpedia.cl` (Wiki.js).
 Actualizado: 2026-03-08 · Total: **71 páginas** · Locale: `es`
 
+> **Orden de secciones**: Intro → El Servicio → Interconsultores → Servicios de Apoyo → Marco Legal → Protocolos Operativos → Protocolos de Calidad → Protocolos Clínicos → Calculadoras
+
 > **Convención de rutas**: Wiki.js almacena las páginas sin prefijo de locale.
 > En la URL del navegador se muestra como `/es/<path>`.
 > En el script de creación (GraphQL) se usa sólo `<path>`.
@@ -21,14 +23,6 @@ home
 │   ├── descripcion
 │   ├── organigrama
 │   └── horarios-y-turnos
-├── marco-legal/
-│   ├── ley-de-urgencia
-│   ├── accidentes-del-trabajo
-│   ├── licencias-medicas
-│   ├── eno
-│   ├── ges-auge
-│   ├── violencia-y-maltrato
-│   └── otros
 ├── interconsultores/
 │   └── tabla
 ├── servicios-de-apoyo/
@@ -36,6 +30,14 @@ home
 │   ├── imagenologia
 │   ├── banco-de-sangre
 │   ├── farmacia
+│   └── otros
+├── marco-legal/
+│   ├── ley-de-urgencia
+│   ├── accidentes-del-trabajo
+│   ├── licencias-medicas
+│   ├── eno
+│   ├── ges-auge
+│   ├── violencia-y-maltrato
 │   └── otros
 ├── protocolos-operativos/
 │   ├── triage
@@ -119,21 +121,6 @@ home
 
 ---
 
-### Marco Legal
-
-| Path | Título | Descripción |
-|---|---|---|
-| `marco-legal` | Marco Legal | Sección índice — normativa legal aplicable en urgencia |
-| `marco-legal/ley-de-urgencia` | Ley de Urgencia | Ley 19.966 — cobertura FONASA/ISAPRE |
-| `marco-legal/accidentes-del-trabajo` | Accidentes del Trabajo | Ley 16.744 — MUTUAL, derivación, formularios |
-| `marco-legal/licencias-medicas` | Licencias Médicas | Tipos A/B/C, plazos, COMPIN, formularios |
-| `marco-legal/eno` | ENO | Listado ENO, formulario EPIVID, plazos de denuncia |
-| `marco-legal/ges-auge` | GES/AUGE | Garantías con plazo en urgencia, canastas |
-| `marco-legal/violencia-y-maltrato` | Violencia y Maltrato | VIF, AVIF, maltrato infantil, protocolo de denuncia |
-| `marco-legal/otros` | Otros Marcos Legales | Consentimiento, menores sin adulto, paciente incapacitado |
-
----
-
 ### Interconsultores
 
 | Path | Título | Descripción |
@@ -156,6 +143,21 @@ Medicina Interna · Cardiología · Cirugía General · Traumatología · Neurol
 | `servicios-de-apoyo/banco-de-sangre` | Banco de Sangre | Productos, tiempos, protocolo de transfusión masiva |
 | `servicios-de-apoyo/farmacia` | Farmacia | Arsenal de urgencia, medicamentos fuera de stock |
 | `servicios-de-apoyo/otros` | Otros Servicios | TENS, arsenales, gases clínicos, carro de paro |
+
+---
+
+### Marco Legal
+
+| Path | Título | Descripción |
+|---|---|---|
+| `marco-legal` | Marco Legal | Sección índice — normativa legal aplicable en urgencia |
+| `marco-legal/ley-de-urgencia` | Ley de Urgencia | Ley 19.966 — cobertura FONASA/ISAPRE |
+| `marco-legal/accidentes-del-trabajo` | Accidentes del Trabajo | Ley 16.744 — MUTUAL, derivación, formularios |
+| `marco-legal/licencias-medicas` | Licencias Médicas | Tipos A/B/C, plazos, COMPIN, formularios |
+| `marco-legal/eno` | ENO | Listado ENO, formulario EPIVID, plazos de denuncia |
+| `marco-legal/ges-auge` | GES/AUGE | Garantías con plazo en urgencia, canastas |
+| `marco-legal/violencia-y-maltrato` | Violencia y Maltrato | VIF, AVIF, maltrato infantil, protocolo de denuncia |
+| `marco-legal/otros` | Otros Marcos Legales | Consentimiento, menores sin adulto, paciente incapacitado |
 
 ---
 
@@ -287,3 +289,4 @@ mutation { pages { delete(id: PAGE_ID) { responseResult { succeeded } } } }
 | Fecha | Cambio |
 |---|---|
 | 2026-03-08 | Creación inicial — 71 páginas base en 9 secciones |
+| 2026-03-08 | Reorden de secciones: Interconsultores y Servicios de Apoyo antes de Marco Legal |
