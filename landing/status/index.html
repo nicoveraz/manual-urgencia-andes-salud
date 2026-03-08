@@ -61,8 +61,13 @@
       padding: 18px 0; border-bottom: 1px solid var(--border);
     }
     .service:first-of-type { border-top: 1px solid var(--border); }
+    .service { align-items: flex-start; }
     .service-name { font-size: .9rem; font-weight: 500; color: var(--text); }
     .service-desc { font-size: .8rem; color: var(--text-muted); margin-top: 2px; }
+    .service-uptime { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
+    .uptime-label { font-size: .72rem; color: var(--text-dim); }
+    .uptime-val { font-size: .72rem; color: var(--text-muted); font-weight: 500; min-width: 2ch; }
+    .uptime-sep { font-size: .72rem; color: var(--text-dim); }
     .status-pill {
       display: flex; align-items: center; gap: 6px;
       font-size: .78rem; font-weight: 600; color: var(--text-dim);
@@ -112,6 +117,11 @@
       <div>
         <div class="service-name">urgpedia.cl</div>
         <div class="service-desc">Landing page y portal principal</div>
+        <div class="service-uptime">
+          <span class="uptime-label">24h</span><span class="uptime-val" id="up-urgpedia-day">—</span>
+          <span class="uptime-sep">·</span>
+          <span class="uptime-label">7d</span><span class="uptime-val" id="up-urgpedia-week">—</span>
+        </div>
       </div>
       <div class="status-pill" id="s-urgpedia"><div class="status-dot"></div>Verificando…</div>
     </div>
@@ -119,6 +129,11 @@
       <div>
         <div class="service-name">caspm.urgpedia.cl</div>
         <div class="service-desc">Manual de urgencia CASPM Puerto Montt</div>
+        <div class="service-uptime">
+          <span class="uptime-label">24h</span><span class="uptime-val" id="up-caspm-day">—</span>
+          <span class="uptime-sep">·</span>
+          <span class="uptime-label">7d</span><span class="uptime-val" id="up-caspm-week">—</span>
+        </div>
       </div>
       <div class="status-pill" id="s-caspm"><div class="status-dot"></div>Verificando…</div>
     </div>
@@ -126,6 +141,11 @@
       <div>
         <div class="service-name">Autenticación (Auth0)</div>
         <div class="service-desc">Inicio de sesión y gestión de accesos</div>
+        <div class="service-uptime">
+          <span class="uptime-label">24h</span><span class="uptime-val" id="up-auth0-day">—</span>
+          <span class="uptime-sep">·</span>
+          <span class="uptime-label">7d</span><span class="uptime-val" id="up-auth0-week">—</span>
+        </div>
       </div>
       <div class="status-pill" id="s-auth0"><div class="status-dot"></div>Verificando…</div>
     </div>

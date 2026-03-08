@@ -26,6 +26,22 @@
       : '<div class="status-dot"></div>No disponible');
   }
 
+  async function loadUptime() {
+    try {
+      var r = await fetch('/assets/uptime.json', { cache: 'no-store' });
+      if (!r.ok) return;
+      var data = await r.json();
+      var svcs = data.services || {};
+      ['urgpedia', 'caspm', 'auth0'].forEach(function (svc) {
+        var s = svcs[svc] || {};
+        var d = document.getElementById('up-' + svc + '-day');
+        var w = document.getElementById('up-' + svc + '-week');
+        if (d) d.textContent = s.day != null ? s.day + '%' : '—';
+        if (w) w.textContent = s.week != null ? s.week + '%' : '—';
+      });
+    } catch (_) {}
+  }
+
   async function run() {
     var results = await Promise.all([
       check('/assets/urgpedia-favicon.svg'),  // urgpedia.cl file serving
@@ -53,6 +69,8 @@
       dateStyle: 'medium',
       timeStyle: 'short',
     });
+
+    loadUptime();
   }
 
   run();
