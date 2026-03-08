@@ -69,6 +69,10 @@
     .footer-links { display: flex; flex-direction: column; gap: 0; background: transparent; }
     .footer-links a { color: rgba(255,255,255,.6); text-decoration: none; font-size: .78rem; transition: color .15s; width: fit-content; padding: 8px 0; }
     .footer-links a:hover { color: rgba(255,255,255,.95); }
+    @media (max-width: 768px) {
+      .nav-inner { padding: 0 16px; }
+      .footer-inner { padding: 40px 16px 64px; }
+    }
   </style>
 </head>
 <body>
