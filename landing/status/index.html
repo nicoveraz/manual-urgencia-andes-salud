@@ -102,8 +102,8 @@
     .footer-brand { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.9); font-weight: 600; font-size: .825rem; }
     .footer-brand img { width: 20px; height: 20px; }
     .footer-copy { color: rgba(255,255,255,.55); font-size: .78rem; }
-    .footer-links { display: flex; flex-direction: column; gap: 10px; }
-    .footer-links a { color: rgba(255,255,255,.6); text-decoration: none; font-size: .78rem; transition: color .15s; width: fit-content; }
+    .footer-links { display: flex; flex-direction: column; gap: 0; background: transparent; }
+    .footer-links a { color: rgba(255,255,255,.6); text-decoration: none; font-size: .78rem; transition: color .15s; width: fit-content; padding: 8px 0; }
     .footer-links a:hover { color: rgba(255,255,255,.95); }
   </style>
 </head>
@@ -191,6 +191,7 @@
     </div>
     <nav class="footer-links">
       <a href="/terminos">Términos de Servicio</a>
+      <a href="/cla">CLA</a>
       <a href="/atribuciones">Atribuciones</a>
       <a href="/roadmap">Roadmap</a>
       <a href="/status">Status</a>
