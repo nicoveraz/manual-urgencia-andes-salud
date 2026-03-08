@@ -67,7 +67,7 @@ nav_items = [
     # ── L1: El Servicio ───────────────────────────────────────────────────────
     hdr("El Servicio", "mdi-hospital-building"),
     lnk("El Servicio (índice)",     "/es/el-servicio"),
-    lnk("Misión y Visión",          "/es/el-servicio/mision-y-vision"),
+    lnk("Cuidamos Mejor",            "/es/el-servicio/mision-y-vision"),
     lnk("Descripción del Servicio", "/es/el-servicio/descripcion"),
     lnk("Organigrama",              "/es/el-servicio/organigrama"),
     lnk("Horarios y Turnos",        "/es/el-servicio/horarios-y-turnos"),
