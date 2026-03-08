@@ -267,10 +267,13 @@
     footer {
       border-top: 1px solid var(--border);
       background: rgba(0,0,0,.2);
-      padding: 24px clamp(16px,5vw,64px);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 16px;
+      padding: 32px clamp(16px,5vw,64px);
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 24px;
       font-size: .78rem; color: var(--text-dim);
+    }
+    .footer-left {
+      display: flex; flex-direction: column; gap: 16px;
     }
     .footer-brand {
       display: flex; align-items: center; gap: 8px;
@@ -278,7 +281,7 @@
     }
     .footer-brand img { width: 20px; height: 20px; }
     .footer-links {
-      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+      display: flex; flex-direction: column; gap: 10px;
     }
     .footer-links a {
       color: var(--text-dim); text-decoration: none; font-size: .78rem;
@@ -408,16 +411,18 @@
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-brand">
-    <img src="/assets/urgpedia-icon.svg" alt="urgpedia" width="20" height="20">
-    urgpedia
+  <div class="footer-left">
+    <div class="footer-brand">
+      <img src="/assets/urgpedia-icon.svg" alt="urgpedia" width="20" height="20">
+      urgpedia
+    </div>
+    <nav class="footer-links">
+      <a href="/terminos">Términos de Servicio</a>
+      <a href="/atribuciones">Atribuciones</a>
+      <a href="/roadmap">Roadmap</a>
+      <a href="/status">Status</a>
+    </nav>
   </div>
-  <nav class="footer-links">
-    <a href="/terminos">Términos de Servicio</a>
-    <a href="/atribuciones">Atribuciones</a>
-    <a href="/roadmap">Roadmap</a>
-    <a href="/status">Status</a>
-  </nav>
   <span>Chile · 2026</span>
 </footer>
 
