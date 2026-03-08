@@ -52,18 +52,16 @@ urgpedia.cl {
 
 caspm.urgpedia.cl {
     import security-headers
-    @root path /
-    redir @root /login/{$AUTH0_STRATEGY_UUID} 302
     reverse_proxy localhost:3000
 }
 ```
 
-> **Nota**: el strategy UUID de Auth0 se lee de la variable de entorno `AUTH0_STRATEGY_UUID` para no hardcodearlo en el Caddyfile. Definirlo en el environment del servidor o en `/etc/caddy/environment`.
+> **Nota**: no forzar redirects de `/` a `/login/{$AUTH0_STRATEGY_UUID}` desde Caddy. Wiki.js ya redirige a `/` al terminar el callback social; si el proxy reenvía esa ruta al login social se produce un loop.
 
 | URL | Resultado |
 |---|---|
 | `urgpedia.cl` | Landing page estática desde `/srv/urgpedia/` |
-| `caspm.urgpedia.cl/` | Redirect 302 → Auth0 login |
+| `caspm.urgpedia.cl/` | Wiki.js → Auto Login activo → redirige directo a Auth0 |
 | `caspm.urgpedia.cl/*` | Wiki.js (reverse proxy a localhost:3000) |
 
 > **Pendiente DNS**: agregar registro `A urgpedia.cl → $SERVER_IP` en el registrador de dominio (ver .env.local).
@@ -77,10 +75,10 @@ caspm.urgpedia.cl {
 | Tenant | `dev-0zpeshonra8ull1d.us.auth0.com` |
 | Aplicación | Regular Web Application |
 | Strategy UUID (Wiki.js) | `81ff3df8-2a3f-4073-b335-38d113f6da22` |
-| Callback configurado | `https://caspm.urgpedia.cl/login/callback` |
+| Callback configurado | `https://caspm.urgpedia.cl/login/81ff3df8-2a3f-4073-b335-38d113f6da22/callback` |
 
 **Para agregar una nueva clínica:**
-Ir a Auth0 Dashboard → Applications → Allowed Callback URLs → agregar `https://nueva-clinica.urgpedia.cl/login/callback`.
+Ir a Auth0 Dashboard → Applications → Allowed Callback URLs → agregar `https://nueva-clinica.urgpedia.cl/login/<AUTH0_STRATEGY_UUID>/callback`.
 
 El SSO es transparente: un usuario autenticado en cualquier subdominio no necesita volver a hacer login en otro.
 
@@ -91,14 +89,9 @@ El SSO es transparente: un usuario autenticado en cualquier subdominio no necesi
 Los siguientes archivos dentro del contenedor `wiki` fueron modificados directamente:
 
 ### `/wiki/server/views/login.pug`
-Agrega redirect JS a Auth0 cuando no hay password-change flow activo:
-```pug
-block head
-  if !changePwdContinuationToken
-    script.
-      window.location.replace('/login/81ff3df8-2a3f-4073-b335-38d113f6da22');
-```
-> Nota: el redirect principal ya lo hace Caddy. Este JS es un fallback.
+No agregar redirect JS automático al proveedor social. Si existe un override con
+`window.location.replace('/login/<AUTH0_STRATEGY_UUID>')`, eliminarlo: combinado
+con el callback social de Wiki.js y con redirects del proxy provoca loops.
 
 ### `/wiki/server/core/servers.js`
 GraphQL introspection deshabilitado (seguridad):
@@ -118,6 +111,12 @@ this.servers.graph = new ApolloServer({
 ## 5. Wiki.js — configuración en base de datos
 
 Acceso: `docker exec wiki-db psql -U wikijs wikijs`
+
+### Auth settings
+```sql
+-- autoLogin: true (redirige directo a Auth0 sin mostrar pantalla de selección)
+SELECT key, value FROM settings WHERE key = 'auth';
+```
 
 ### Search engine
 ```sql
@@ -214,7 +213,7 @@ scripts/*-users-*.py
 
 - [ ] **DNS**: agregar registro `A urgpedia.cl → $SERVER_IP` en registrador de dominio (ver .env.local)
 - [ ] **Search index**: Admin → Search Engine → Rebuild Index (tras cambio de `db` a `postgres`)
-- [ ] **Login.pug**: evaluar si el JS redirect sigue siendo necesario (Caddy ya redirige `/`)
+- [ ] **Wiki.js Auto Login**: confirmar que está activo y que no quedan redirects manuales en Caddy o `login.pug`
 - [ ] **Nueva clínica**: nuevo stack Docker + subdominio en Caddy + callback Auth0 + card en landing
 - [x] **Volúmenes Docker**: login.pug y servers.js montados como volúmenes en docker-compose.yml (ver `overrides/`)
 
