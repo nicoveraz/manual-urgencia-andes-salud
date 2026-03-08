@@ -11,8 +11,7 @@
       --bg: #0b1120; --bg-card: #0f1929;
       --border: rgba(255,255,255,.07);
       --text: #e8edf5; --text-muted: #6b7fa3; --text-dim: #4a5670;
-      --green: #22c55e; --green-dim: rgba(34,197,94,.12); --green-border: rgba(34,197,94,.2);
-      --red: #f87171; --red-dim: rgba(248,113,113,.1); --red-border: rgba(248,113,113,.25);
+      --red: #f87171;
       --teal: rgb(0,176,147);
       --white: #ffffff;
     }
@@ -40,21 +39,11 @@
     /* Global status banner */
     .global-status {
       display: flex; align-items: center; gap: 10px;
-      padding: 14px 18px; border-radius: 10px; margin-bottom: 48px;
-      background: rgba(255,255,255,.04); border: 1px solid var(--border);
-      transition: background .4s, border-color .4s;
+      margin-bottom: 48px;
     }
-    .global-status.ok { background: var(--green-dim); border-color: var(--green-border); }
-    .global-status.err { background: var(--red-dim); border-color: var(--red-border); }
-    .global-dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-      background: var(--text-dim); transition: background .4s, box-shadow .4s;
-    }
-    .global-status.ok .global-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .global-status.err .global-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
-    .global-label { font-size: .875rem; font-weight: 600; color: var(--text-muted); transition: color .4s; }
-    .global-status.ok .global-label { color: var(--green); }
-    .global-status.err .global-label { color: var(--red); }
+    .g-icon { display: flex; flex-shrink: 0; }
+    .g-icon svg { width: 22px; height: 22px; display: block; }
+    .global-label { font-size: 1rem; font-weight: 600; color: var(--white); }
 
     /* Service rows */
     .service {
@@ -132,7 +121,7 @@
     <h1>Status</h1>
 
     <div class="global-status" id="g-status">
-      <div class="global-dot"></div>
+      <span class="g-icon" id="g-icon"></span>
       <span class="global-label" id="g-label">Verificando…</span>
     </div>
 

@@ -79,13 +79,26 @@
     set('s-caspm',    caspmUp);
     set('s-auth0',    auth0Up);
 
-    var allUp = urgpediaUp && caspmUp && auth0Up;
-    var g = document.getElementById('g-status');
-    var l = document.getElementById('g-label');
-    if (g) g.className = 'global-status ' + (allUp ? 'ok' : 'err');
-    if (l) l.textContent = allUp
+    var upList = [urgpediaUp, caspmUp, auth0Up];
+    var downCount = upList.filter(function (v) { return !v; }).length;
+    var state = downCount === 0 ? 'ok' : (downCount < upList.length ? 'warn' : 'err');
+
+    var ICONS = {
+      ok:   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgb(0,176,147)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5l-4-4 1.41-1.41L10 13.67l6.59-6.59L18 8.5l-8 8z"/></svg>',
+      warn: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#e6a817"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+      err:  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f87171"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>',
+    };
+
+    var g  = document.getElementById('g-status');
+    var l  = document.getElementById('g-label');
+    var ic = document.getElementById('g-icon');
+    if (g)  g.className    = 'global-status ' + state;
+    if (ic) ic.innerHTML   = ICONS[state] || '';
+    if (l)  l.textContent  = state === 'ok'
       ? 'Todos los sistemas operacionales'
-      : 'Degradación detectada';
+      : state === 'warn'
+        ? 'Degradación detectada'
+        : 'Sistemas no disponibles';
 
     var ts = document.getElementById('ts');
     if (ts) ts.textContent = 'Verificado ' + new Date().toLocaleString('es-CL', {
