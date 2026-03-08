@@ -65,7 +65,7 @@ with open(LOG) as f:
 with open(LOG, 'w') as f:
     f.writelines(lines_kept)
 
-# Compute uptime percentages
+# Compute uptime percentages (day / week)
 day_start  = now - 86400
 week_start = now - 7 * 86400
 data = {svc: {'day': [], 'week': []} for svc in checks}
@@ -85,12 +85,38 @@ for line in lines_kept:
     if ts >= week_start:
         data[svc]['week'].append(up)
 
+# Compute hourly slots for the last 7 days (168 slots, index 0 = oldest)
+SLOTS = 168
+slot_start = now - SLOTS * 3600
+hours_raw = {svc: [[] for _ in range(SLOTS)] for svc in checks}
+
+for line in lines_kept:
+    parts = line.strip().split()
+    if len(parts) != 3:
+        continue
+    try:
+        ts, svc, up = int(parts[0]), parts[1], int(parts[2])
+    except ValueError:
+        continue
+    if svc not in hours_raw:
+        continue
+    if ts < slot_start:
+        continue
+    idx = int((ts - slot_start) // 3600)
+    if 0 <= idx < SLOTS:
+        hours_raw[svc][idx].append(up)
+
 result = {'updated': now, 'services': {}}
 for svc in checks:
     d = data[svc]
+    h = hours_raw[svc]
     result['services'][svc] = {
         'day':  round(sum(d['day'])  / len(d['day'])  * 100, 1) if d['day']  else None,
         'week': round(sum(d['week']) / len(d['week']) * 100, 1) if d['week'] else None,
+        'hours': [
+            round(sum(bucket) / len(bucket), 2) if bucket else None
+            for bucket in h
+        ],
     }
 
 with open(OUT, 'w') as f:

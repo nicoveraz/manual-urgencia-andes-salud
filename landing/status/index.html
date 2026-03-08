@@ -13,6 +13,7 @@
       --text: #e8edf5; --text-muted: #6b7fa3; --text-dim: #4a5670;
       --green: #22c55e; --green-dim: rgba(34,197,94,.12); --green-border: rgba(34,197,94,.2);
       --red: #f87171; --red-dim: rgba(248,113,113,.1); --red-border: rgba(248,113,113,.25);
+      --teal: rgb(0,176,147);
       --white: #ffffff;
     }
     body {
@@ -57,27 +58,49 @@
 
     /* Service rows */
     .service {
-      display: flex; align-items: center; justify-content: space-between; gap: 16px;
-      padding: 18px 0; border-bottom: 1px solid var(--border);
+      padding: 20px 0; border-bottom: 1px solid var(--border);
     }
     .service:first-of-type { border-top: 1px solid var(--border); }
-    .service { align-items: flex-start; }
-    .service-name { font-size: .9rem; font-weight: 500; color: var(--text); }
+
+    /* Service header: name+desc on left, status pill on right */
+    .service-header {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    }
+    .service-name { font-size: .9rem; font-weight: 600; color: var(--text); }
     .service-desc { font-size: .8rem; color: var(--text-muted); margin-top: 2px; }
-    .service-uptime { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
-    .uptime-label { font-size: .72rem; color: var(--text-dim); }
-    .uptime-val { font-size: .72rem; color: var(--text-muted); font-weight: 500; min-width: 2ch; }
-    .uptime-sep { font-size: .72rem; color: var(--text-dim); }
+
     .status-pill {
       display: flex; align-items: center; gap: 6px;
       font-size: .78rem; font-weight: 600; color: var(--text-dim);
       flex-shrink: 0; transition: color .4s;
     }
-    .status-pill.ok { color: var(--green); }
+    .status-pill.ok { color: var(--teal); }
     .status-pill.err { color: var(--red); }
     .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background .4s, box-shadow .4s; }
-    .status-pill.ok .status-dot { background: var(--green); }
+    .status-pill.ok .status-dot { background: var(--teal); }
     .status-pill.err .status-dot { background: var(--red); }
+
+    /* Timeline bar */
+    .tl-wrap { margin-top: 12px; }
+    .tl-bars {
+      display: flex; gap: 2px; height: 28px; align-items: stretch;
+    }
+    .tl-bar {
+      flex: 1; border-radius: 2px;
+      background: rgba(255,255,255,.06);
+      transition: background .3s;
+      cursor: default;
+    }
+    .tl-bar.tl-up      { background: var(--teal); }
+    .tl-bar.tl-down    { background: var(--red); opacity: .8; }
+    .tl-bar.tl-partial { background: #e6a817; }
+    .tl-bar.tl-nodata  { background: rgba(255,255,255,.06); }
+    .tl-labels {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 6px;
+    }
+    .tl-label { font-size: .68rem; color: var(--text-dim); letter-spacing: .02em; }
+    .tl-pct   { font-size: .72rem; font-weight: 600; color: var(--text-muted); }
 
     .updated { font-size: .75rem; color: var(--text-dim); margin-top: 40px; min-height: 1.1em; }
 
@@ -114,40 +137,57 @@
     </div>
 
     <div class="service">
-      <div>
-        <div class="service-name">urgpedia.cl</div>
-        <div class="service-desc">Landing page y portal principal</div>
-        <div class="service-uptime">
-          <span class="uptime-label">24h</span><span class="uptime-val" id="up-urgpedia-day">—</span>
-          <span class="uptime-sep">·</span>
-          <span class="uptime-label">7d</span><span class="uptime-val" id="up-urgpedia-week">—</span>
+      <div class="service-header">
+        <div>
+          <div class="service-name">urgpedia.cl</div>
+          <div class="service-desc">Landing page y portal principal</div>
+        </div>
+        <div class="status-pill" id="s-urgpedia"><div class="status-dot"></div>Verificando…</div>
+      </div>
+      <div class="tl-wrap">
+        <div class="tl-bars" id="tl-urgpedia"></div>
+        <div class="tl-labels">
+          <span class="tl-label">7 días atrás</span>
+          <span class="tl-pct" id="up-urgpedia-week">—</span>
+          <span class="tl-label">Hoy</span>
         </div>
       </div>
-      <div class="status-pill" id="s-urgpedia"><div class="status-dot"></div>Verificando…</div>
     </div>
+
     <div class="service">
-      <div>
-        <div class="service-name">caspm.urgpedia.cl</div>
-        <div class="service-desc">Manual de urgencia CASPM Puerto Montt</div>
-        <div class="service-uptime">
-          <span class="uptime-label">24h</span><span class="uptime-val" id="up-caspm-day">—</span>
-          <span class="uptime-sep">·</span>
-          <span class="uptime-label">7d</span><span class="uptime-val" id="up-caspm-week">—</span>
+      <div class="service-header">
+        <div>
+          <div class="service-name">caspm.urgpedia.cl</div>
+          <div class="service-desc">Manual de urgencia CASPM Puerto Montt</div>
+        </div>
+        <div class="status-pill" id="s-caspm"><div class="status-dot"></div>Verificando…</div>
+      </div>
+      <div class="tl-wrap">
+        <div class="tl-bars" id="tl-caspm"></div>
+        <div class="tl-labels">
+          <span class="tl-label">7 días atrás</span>
+          <span class="tl-pct" id="up-caspm-week">—</span>
+          <span class="tl-label">Hoy</span>
         </div>
       </div>
-      <div class="status-pill" id="s-caspm"><div class="status-dot"></div>Verificando…</div>
     </div>
+
     <div class="service">
-      <div>
-        <div class="service-name">Autenticación (Auth0)</div>
-        <div class="service-desc">Inicio de sesión y gestión de accesos</div>
-        <div class="service-uptime">
-          <span class="uptime-label">24h</span><span class="uptime-val" id="up-auth0-day">—</span>
-          <span class="uptime-sep">·</span>
-          <span class="uptime-label">7d</span><span class="uptime-val" id="up-auth0-week">—</span>
+      <div class="service-header">
+        <div>
+          <div class="service-name">Autenticación (Auth0)</div>
+          <div class="service-desc">Inicio de sesión y gestión de accesos</div>
+        </div>
+        <div class="status-pill" id="s-auth0"><div class="status-dot"></div>Verificando…</div>
+      </div>
+      <div class="tl-wrap">
+        <div class="tl-bars" id="tl-auth0"></div>
+        <div class="tl-labels">
+          <span class="tl-label">7 días atrás</span>
+          <span class="tl-pct" id="up-auth0-week">—</span>
+          <span class="tl-label">Hoy</span>
         </div>
       </div>
-      <div class="status-pill" id="s-auth0"><div class="status-dot"></div>Verificando…</div>
     </div>
 
     <p class="updated" id="ts"></p>

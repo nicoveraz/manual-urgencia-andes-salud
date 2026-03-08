@@ -26,6 +26,30 @@
       : '<div class="status-dot"></div>No disponible');
   }
 
+  function renderTimeline(svcId, hours) {
+    var container = document.getElementById('tl-' + svcId);
+    if (!container || !hours || !hours.length) return;
+    container.innerHTML = '';
+    var BARS = 90;
+    var ratio = hours.length / BARS;
+    for (var i = 0; i < BARS; i++) {
+      var start = Math.floor(i * ratio);
+      var end   = Math.floor((i + 1) * ratio);
+      var slice = hours.slice(start, end).filter(function (v) { return v !== null; });
+      var bar = document.createElement('div');
+      bar.className = 'tl-bar';
+      if (slice.length === 0) {
+        bar.classList.add('tl-nodata');
+      } else {
+        var avg = slice.reduce(function (a, b) { return a + b; }, 0) / slice.length;
+        if (avg >= 0.9)      bar.classList.add('tl-up');
+        else if (avg >= 0.1) bar.classList.add('tl-partial');
+        else                 bar.classList.add('tl-down');
+      }
+      container.appendChild(bar);
+    }
+  }
+
   async function loadUptime() {
     try {
       var r = await fetch('/assets/uptime.json', { cache: 'no-store' });
@@ -34,10 +58,9 @@
       var svcs = data.services || {};
       ['urgpedia', 'caspm', 'auth0'].forEach(function (svc) {
         var s = svcs[svc] || {};
-        var d = document.getElementById('up-' + svc + '-day');
         var w = document.getElementById('up-' + svc + '-week');
-        if (d) d.textContent = s.day != null ? s.day + '%' : '—';
         if (w) w.textContent = s.week != null ? s.week + '%' : '—';
+        renderTimeline(svc, s.hours || []);
       });
     } catch (_) {}
   }
