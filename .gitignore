@@ -28,4 +28,6 @@ backups/
 # Scripts con datos sensibles (PII, credenciales)
 scripts/create-users-auth0.py
 scripts/*-users-*.py
+scripts/auth0-whitelist-action.js
+scripts/auth0-link-accounts-action.js
 *.csv

@@ -18,13 +18,10 @@ Si el contenedor ya fue recreado y perdiste los cambios, aquí están las
 modificaciones que deben aplicarse:
 
 ### login.pug
-Agregar al inicio del bloque `head`:
-```pug
-block head
-  if !changePwdContinuationToken
-    script.
-      window.location.replace('/login/81ff3df8-2a3f-4073-b335-38d113f6da22');
-```
+No agregar un redirect JS automático a `/login/<AUTH0_STRATEGY_UUID>` desde `login.pug`.
+Ese workaround compite con el callback social nativo de Wiki.js y puede dejar la
+sesión en un loop de autenticación. Para saltarse la pantalla de login, usar
+`Administration > Authentication > Auto Login` dentro de Wiki.js.
 
 ### servers.js
 En la creación de `ApolloServer`, agregar `introspection: false`:

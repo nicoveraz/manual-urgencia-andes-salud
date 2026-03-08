@@ -56,7 +56,7 @@ Color primario: `#04488e`
 
 1. **Servidor**: nuevo stack Docker (wiki + wiki-db) en puerto distinto
 2. **Caddy**: agregar bloque `nueva-clinica.urgpedia.cl` en `/etc/caddy/Caddyfile`
-3. **Auth0**: agregar `https://nueva-clinica.urgpedia.cl/login/callback` en Allowed Callback URLs
+3. **Auth0**: agregar `https://nueva-clinica.urgpedia.cl/login/<AUTH0_STRATEGY_UUID>/callback` en Allowed Callback URLs
 4. **Landing**: copiar bloque `.card` en `landing/index.html`, activar y actualizar datos
 
 Ver [docs/ESTADO-ACTUAL.md](docs/ESTADO-ACTUAL.md) para el estado técnico completo.

@@ -92,7 +92,7 @@ docker compose ps
 3. Nombre: "Manual Urgencia Andes Salud"
 4. Tipo: Regular Web Application
 5. Configurar:
-   - **Allowed Callback URLs:** `https://tu-dominio.com/login/oauth2/callback`
+   - **Allowed Callback URLs:** `https://tu-dominio.com/login/<AUTH0_STRATEGY_UUID>/callback`
    - **Allowed Logout URLs:** `https://tu-dominio.com`
    - **Allowed Web Origins:** `https://tu-dominio.com`
 
@@ -111,7 +111,9 @@ docker compose ps
    - **Domain:** tu-tenant.auth0.com
    - **Client ID:** (copiar de Auth0)
    - **Client Secret:** (copiar de Auth0)
-3. Mapear grupos de Auth0 a permisos de Wiki.js
+3. Copiar el `Strategy UUID` generado por Wiki.js y usarlo en el callback anterior
+4. Activar **Auto Login** en Wiki.js en lugar de forzar redirects desde Caddy o `login.pug`
+5. Mapear grupos de Auth0 a permisos de Wiki.js
 
 ## 6. Aplicar Branding
 
@@ -144,6 +146,11 @@ tu-dominio.com {
 }
 ```
 
+No agregar redirects forzados de `/` hacia `/login/<AUTH0_STRATEGY_UUID>` en Caddy.
+Wiki.js ya completa el callback social redirigiendo a `/`, y si el proxy vuelve a
+empujar esa ruta al login social se genera un loop. Si se quiere evitar la pantalla
+de selección de proveedor, usar `Administration > Authentication > Auto Login`.
+
 ```bash
 # Reiniciar Caddy
 sudo systemctl restart caddy
@@ -172,3 +179,10 @@ Agregar línea:
 - [ ] Branding aplicado correctamente
 - [ ] SSL configurado (HTTPS)
 - [ ] Backups automáticos programados
+
+## Troubleshooting de Login
+
+- Si Auth0 autentica pero vuelve a empezar el login, revisar que el callback en Auth0 sea exactamente `https://tu-dominio.com/login/<AUTH0_STRATEGY_UUID>/callback`.
+- Si hay un loop después del callback, eliminar cualquier redirect de `/` a `/login/<AUTH0_STRATEGY_UUID>` en Caddy.
+- Si existe un override en `login.pug` con `window.location.replace('/login/<AUTH0_STRATEGY_UUID>')`, deshabilitarlo o quitarlo.
+- Si el login entra pero el panel de administración devuelve `Forbidden` en el frontend, revisar el mapeo del usuario o grupo `admin` dentro de Wiki.js/Auth0.
