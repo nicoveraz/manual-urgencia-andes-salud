@@ -171,7 +171,7 @@ ACCORDION_INJECT = r"""
 /* L1 header: v-subheader ya tiene display:flex; align-items:center */
 .wk-hdr { cursor: pointer !important; user-select: none; }
 
-/* Chevron L1: mdi-chevron-down inyectado por JS; rota ▼↔▲ */
+/* Chevron L1 */
 .wk-chv {
   margin-left: auto;
   font-size: 18px !important;
@@ -182,24 +182,53 @@ ACCORDION_INJECT = r"""
 }
 .wk-chv.wk-open { transform: rotate(180deg); }
 
-/* L2 sub-header (v-list-item--link con mdi-chevron-right) */
+/* L2 sub-header */
 .wk-sub-hdr { cursor: pointer !important; user-select: none; }
 .wk-sub-hdr .v-list-item__title {
   display: flex !important; align-items: center !important; width: 100%;
 }
-/* El ícono mdi-chevron-right rota: ▶ cerrado → ▼ abierto */
 .wk-sub-chv { transition: transform 0.25s ease; }
 .wk-sub-chv.wk-open { transform: rotate(90deg); }
 
-/* Indentación y tamaño L1 sub-ítems */
-.wk-sub { padding-left: 16px !important; }
-.wk-sub .v-list-item__title { font-size: 0.82rem !important; }
-.wk-sub .v-list-item__icon  { min-width: 20px !important; }
+/* Indentación L1 sub-ítems */
+.wk-sub  { padding-left: 16px !important; }
+.wk-sub  .v-list-item__title { font-size: 0.82rem !important; }
+.wk-sub  .v-list-item__icon  { min-width: 20px !important; }
 
-/* Indentación y tamaño L2 sub-sub-ítems */
+/* Indentación L2 sub-sub-ítems */
 .wk-sub2 { padding-left: 32px !important; }
 .wk-sub2 .v-list-item__title { font-size: 0.78rem !important; opacity: 0.85; }
 .wk-sub2 .v-list-item__icon  { min-width: 16px !important; }
+
+/* Ítem activo: negrita + blanco */
+.wk-active .v-list-item__title {
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Botón "Cerrar todo" */
+.wk-ctrl {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 12px;
+}
+.wk-ctrl-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255,255,255,0.4);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s, background 0.2s;
+  font-family: inherit;
+}
+.wk-ctrl-btn:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.08); }
+.wk-ctrl-btn .mdi  { font-size: 14px !important; }
 </style>
 <script>
 (function () {
@@ -219,19 +248,44 @@ ACCORDION_INJECT = r"""
     return (best && best.children.length > 3) ? best : null;
   }
 
-  /* ── Crear elemento chevron L1 ── */
   function mkChv(open) {
     var i = document.createElement('i');
     i.className = 'mdi mdi-chevron-down wk-chv' + (open ? ' wk-open' : '');
     return i;
   }
 
-  /* ── Helper: encontrar grupo padre L2 ── */
   function findParentL2(l2arr, el) {
     for (var i = 0; i < l2arr.length; i++) {
       if (l2arr[i].items.indexOf(el) >= 0) return l2arr[i];
     }
     return null;
+  }
+
+  /* ── Marcar ítem activo ── */
+  function markActive(nav, path) {
+    nav.querySelectorAll('.wk-active').forEach(function(el) { el.classList.remove('wk-active'); });
+    Array.from(nav.querySelectorAll('a.v-list-item--link')).forEach(function(el) {
+      if (el.getAttribute('href') === path) el.classList.add('wk-active');
+    });
+  }
+
+  /* ── Botón "Cerrar todo" ── */
+  function injectCtrlBtn(nav) {
+    if (nav.querySelector('.wk-ctrl')) return;
+    var ctrl = document.createElement('div');
+    ctrl.className = 'wk-ctrl';
+    var btn = document.createElement('button');
+    btn.className = 'wk-ctrl-btn';
+    btn.title = 'Cerrar todos los grupos';
+    btn.innerHTML = '<i class="mdi mdi-unfold-less-horizontal"></i><span>Cerrar todo</span>';
+    btn.addEventListener('click', function() {
+      nav.querySelectorAll('.wk-sub, .wk-sub2').forEach(function(el) { el.style.display = 'none'; });
+      nav.querySelectorAll('.wk-chv').forEach(function(el)     { el.classList.remove('wk-open'); });
+      nav.querySelectorAll('.wk-sub-chv').forEach(function(el) { el.classList.remove('wk-open'); });
+      ss({});
+    });
+    ctrl.appendChild(btn);
+    nav.insertBefore(ctrl, nav.firstChild);
   }
 
   /* ── Inicializar acordeón ── */
@@ -240,36 +294,41 @@ ACCORDION_INJECT = r"""
     if (!nav || nav.dataset.wkInit) return !!nav;
     nav.dataset.wkInit = '1';
 
-    var state    = gs();
-    var children = Array.from(nav.children);
+    var state      = gs();
+    var activePath = window.location.pathname;
+    /* Excluir el botón de control si ya fue inyectado */
+    var children = Array.from(nav.children).filter(function(el) {
+      return !el.classList.contains('wk-ctrl');
+    });
 
     /* Paso 1: agrupar por L1
-       — Wiki.js renderiza "header" kind como DIV.v-subheader (NO v-list-item)
-       — "link" kind como A.v-list-item.v-list-item--link
-       — "divider" kind como HR.v-divider → rompe el grupo actual             */
+       — "header" kind → DIV.v-subheader
+       — "link"   kind → A.v-list-item.v-list-item--link
+       — "divider" / otro → rompe grupo actual                                */
     var l1 = [], curL1 = null;
     children.forEach(function(el) {
       var isHdr = el.classList.contains('v-subheader');
       var isLnk = el.classList.contains('v-list-item') && el.classList.contains('v-list-item--link');
       if      (isHdr)           { curL1 = { hdr: el, items: [], id: 'l1_' + l1.length }; l1.push(curL1); }
       else if (isLnk && curL1)  { curL1.items.push(el); }
-      else                      { curL1 = null; } /* divider u otro = reset */
+      else                      { curL1 = null; }
     });
 
-    /* Paso 2: aplicar acordeón L1 */
+    /* Paso 2: acordeón L1 */
     l1.forEach(function(g) {
       if (!g.items.length) return;
 
-      /* Default: CERRADO (se abre solo si el usuario lo abrió antes) */
-      var open = state[g.id] === true;
-      g.hdr.classList.add('wk-hdr');
+      /* Auto-expandir si algún ítem del grupo es la página activa */
+      var containsActive = g.items.some(function(el) {
+        return el.getAttribute && el.getAttribute('href') === activePath;
+      });
+      var open = state[g.id] === true || containsActive;
 
-      /* Inyectar chevron directo al v-subheader (ya tiene display:flex) */
+      g.hdr.classList.add('wk-hdr');
       var chv = mkChv(open);
       g.hdr.appendChild(chv);
 
-      /* Paso 3: dentro del grupo, identificar L2 sub-headers
-         (links cuyo ícono izquierdo es mdi-chevron-right) */
+      /* Paso 3: L2 sub-grupos (links con mdi-chevron-right) */
       var l2 = [], curL2 = null;
       g.items.forEach(function(el) {
         if (el.querySelector('.mdi-chevron-right')) {
@@ -280,34 +339,32 @@ ACCORDION_INJECT = r"""
         }
       });
 
-      /* Listas planas para búsqueda rápida */
       var l2Hdrs  = l2.map(function(sg) { return sg.hdr; });
       var l2Items = [].concat.apply([], l2.map(function(sg) { return sg.items; }));
 
-      /* Paso 4: aplicar acordeón L2 */
+      /* Paso 4: acordeón L2 */
       l2.forEach(function(sg) {
         if (!sg.items.length) return;
-        /* Default: CERRADO */
-        var sgOpen = state[sg.id] === true;
+        var sgContainsActive = sg.items.some(function(el) {
+          return el.getAttribute && el.getAttribute('href') === activePath;
+        });
+        var sgOpen = state[sg.id] === true || sgContainsActive;
 
         sg.hdr.classList.add('wk-sub-hdr');
         sg.hdr.classList.add('wk-sub');
 
-        /* Rotar el ícono mdi-chevron-right existente */
         var icon = sg.hdr.querySelector('.mdi-chevron-right');
         if (icon) {
           icon.classList.add('wk-sub-chv');
           if (sgOpen) icon.classList.add('wk-open');
         }
 
-        /* Estado inicial sub-sub-ítems */
         sg.items.forEach(function(el) {
           el.classList.add('wk-sub2');
           el.style.display = (open && sgOpen) ? '' : 'none';
         });
         sg.hdr.style.display = open ? '' : 'none';
 
-        /* Handler L2: toggle (previene navegación en estos ítems-toggle) */
         sg.hdr.addEventListener('click', function(e) {
           e.preventDefault();
           e.stopPropagation();
@@ -320,36 +377,33 @@ ACCORDION_INJECT = r"""
         });
       });
 
-      /* Paso 5: ítems normales (fuera de L2) reciben clase wk-sub */
+      /* Paso 5: clases a ítems normales (fuera de L2) */
       g.items.forEach(function(el) {
         if (l2Hdrs.indexOf(el) === -1 && l2Items.indexOf(el) === -1) {
           el.classList.add('wk-sub');
         }
       });
 
-      /* Estado inicial de todos los ítems del grupo L1 */
+      /* Estado inicial ítems L1 */
       g.items.forEach(function(el) {
         if (!open) {
           el.style.display = 'none';
         } else {
-          /* L2 sub-sub-ítems: ya manejados arriba */
           if (l2Items.indexOf(el) < 0) el.style.display = '';
         }
       });
 
-      /* Handler L1: toggle grupo completo */
+      /* Handler L1: toggle grupo */
       g.hdr.addEventListener('click', function() {
         var s = gs();
         var nowOpen = !(s[g.id] === true);
         s[g.id] = nowOpen;
         ss(s);
         chv.classList.toggle('wk-open', nowOpen);
-
         g.items.forEach(function(el) {
           if (!nowOpen) {
             el.style.display = 'none';
           } else {
-            /* Respetar estado L2 para sub-sub-ítems */
             if (l2Items.indexOf(el) >= 0) {
               var psg = findParentL2(l2, el);
               el.style.display = (psg && s[psg.id] === true) ? '' : 'none';
@@ -361,14 +415,17 @@ ACCORDION_INJECT = r"""
       });
     });
 
+    /* Marcar página activa e inyectar botón */
+    markActive(nav, activePath);
+    injectCtrlBtn(nav);
+
     return true;
   }
 
-  /* Poll hasta que el nav esté en el DOM */
   var tries = 0;
   var iv = setInterval(function() { if (init() || ++tries > 60) clearInterval(iv); }, 250);
 
-  /* Re-inicializar en cambios de ruta (Vue Router pushState) */
+  /* Re-inicializar en navegación SPA (Vue Router pushState) */
   var _push = history.pushState;
   history.pushState = function() {
     _push.apply(history, arguments);
