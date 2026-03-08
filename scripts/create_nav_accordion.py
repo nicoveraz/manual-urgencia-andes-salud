@@ -168,11 +168,9 @@ ACCORDION_INJECT = r"""
 <!-- wk-accordion-start -->
 <style>
 /* ── Acordeón Wiki.js 2 niveles ─────────────────────────── */
-/* L1 header */
+/* L1 header: v-subheader ya tiene display:flex; align-items:center */
 .wk-hdr { cursor: pointer !important; user-select: none; }
-.wk-hdr .v-list-item__title {
-  display: flex !important; align-items: center !important; width: 100%;
-}
+
 /* Chevron L1: mdi-chevron-down inyectado por JS; rota ▼↔▲ */
 .wk-chv {
   margin-left: auto;
@@ -180,10 +178,11 @@ ACCORDION_INJECT = r"""
   transition: transform 0.25s ease;
   line-height: 1;
   opacity: 0.75;
+  flex-shrink: 0;
 }
-.wk-chv.wk-open { transform: rotate(180deg); } /* apunta ▲ cuando abierto */
+.wk-chv.wk-open { transform: rotate(180deg); }
 
-/* L2 sub-header (link con mdi-chevron-right) */
+/* L2 sub-header (v-list-item--link con mdi-chevron-right) */
 .wk-sub-hdr { cursor: pointer !important; user-select: none; }
 .wk-sub-hdr .v-list-item__title {
   display: flex !important; align-items: center !important; width: 100%;
@@ -220,7 +219,7 @@ ACCORDION_INJECT = r"""
     return (best && best.children.length > 3) ? best : null;
   }
 
-  /* ── Crear elemento chevron ── */
+  /* ── Crear elemento chevron L1 ── */
   function mkChv(open) {
     var i = document.createElement('i');
     i.className = 'mdi mdi-chevron-down wk-chv' + (open ? ' wk-open' : '');
@@ -244,30 +243,33 @@ ACCORDION_INJECT = r"""
     var state    = gs();
     var children = Array.from(nav.children);
 
-    /* Paso 1: agrupar por L1 (header kind = no tiene v-list-item--link) */
+    /* Paso 1: agrupar por L1
+       — Wiki.js renderiza "header" kind como DIV.v-subheader (NO v-list-item)
+       — "link" kind como A.v-list-item.v-list-item--link
+       — "divider" kind como HR.v-divider → rompe el grupo actual             */
     var l1 = [], curL1 = null;
     children.forEach(function(el) {
-      var isHdr = el.classList.contains('v-list-item') && !el.classList.contains('v-list-item--link');
-      var isLnk = el.classList.contains('v-list-item') &&  el.classList.contains('v-list-item--link');
+      var isHdr = el.classList.contains('v-subheader');
+      var isLnk = el.classList.contains('v-list-item') && el.classList.contains('v-list-item--link');
       if      (isHdr)           { curL1 = { hdr: el, items: [], id: 'l1_' + l1.length }; l1.push(curL1); }
       else if (isLnk && curL1)  { curL1.items.push(el); }
-      else                      { curL1 = null; } /* divider = reset */
+      else                      { curL1 = null; } /* divider u otro = reset */
     });
 
     /* Paso 2: aplicar acordeón L1 */
     l1.forEach(function(g) {
       if (!g.items.length) return;
 
-      var open = state[g.id] !== false; /* default: abierto */
+      /* Default: CERRADO (se abre solo si el usuario lo abrió antes) */
+      var open = state[g.id] === true;
       g.hdr.classList.add('wk-hdr');
 
-      /* Inyectar chevron al título del header */
-      var titleEl = g.hdr.querySelector('.v-list-item__title');
+      /* Inyectar chevron directo al v-subheader (ya tiene display:flex) */
       var chv = mkChv(open);
-      if (titleEl) titleEl.appendChild(chv);
+      g.hdr.appendChild(chv);
 
       /* Paso 3: dentro del grupo, identificar L2 sub-headers
-         (links cuyo ícono es mdi-chevron-right) */
+         (links cuyo ícono izquierdo es mdi-chevron-right) */
       var l2 = [], curL2 = null;
       g.items.forEach(function(el) {
         if (el.querySelector('.mdi-chevron-right')) {
@@ -279,16 +281,17 @@ ACCORDION_INJECT = r"""
       });
 
       /* Listas planas para búsqueda rápida */
-      var l2Hdrs  = l2.map(function(sg) { return sg.hdr;   });
+      var l2Hdrs  = l2.map(function(sg) { return sg.hdr; });
       var l2Items = [].concat.apply([], l2.map(function(sg) { return sg.items; }));
 
       /* Paso 4: aplicar acordeón L2 */
       l2.forEach(function(sg) {
         if (!sg.items.length) return;
-        var sgOpen = state[sg.id] !== false;
+        /* Default: CERRADO */
+        var sgOpen = state[sg.id] === true;
 
         sg.hdr.classList.add('wk-sub-hdr');
-        sg.hdr.classList.add('wk-sub'); /* indentación L1 */
+        sg.hdr.classList.add('wk-sub');
 
         /* Rotar el ícono mdi-chevron-right existente */
         var icon = sg.hdr.querySelector('.mdi-chevron-right');
@@ -297,20 +300,19 @@ ACCORDION_INJECT = r"""
           if (sgOpen) icon.classList.add('wk-open');
         }
 
-        /* Estado inicial de sub-sub-ítems */
+        /* Estado inicial sub-sub-ítems */
         sg.items.forEach(function(el) {
           el.classList.add('wk-sub2');
           el.style.display = (open && sgOpen) ? '' : 'none';
         });
         sg.hdr.style.display = open ? '' : 'none';
 
-        /* Handler L2: toggle sub-grupo (previene navegación) */
+        /* Handler L2: toggle (previene navegación en estos ítems-toggle) */
         sg.hdr.addEventListener('click', function(e) {
           e.preventDefault();
           e.stopPropagation();
           var s = gs();
-          var nowOpen = s[sg.id] !== false;
-          nowOpen = !nowOpen;
+          var nowOpen = !(s[sg.id] === true);
           s[sg.id] = nowOpen;
           ss(s);
           if (icon) icon.classList.toggle('wk-open', nowOpen);
@@ -318,31 +320,27 @@ ACCORDION_INJECT = r"""
         });
       });
 
-      /* Paso 5: ítems fuera de L2 reciben clase wk-sub */
+      /* Paso 5: ítems normales (fuera de L2) reciben clase wk-sub */
       g.items.forEach(function(el) {
         if (l2Hdrs.indexOf(el) === -1 && l2Items.indexOf(el) === -1) {
           el.classList.add('wk-sub');
         }
       });
 
-      /* Estado inicial de todos los ítems del grupo */
+      /* Estado inicial de todos los ítems del grupo L1 */
       g.items.forEach(function(el) {
         if (!open) {
           el.style.display = 'none';
         } else {
-          if (l2Items.indexOf(el) >= 0) {
-            /* Ya manejado arriba por L2 */
-          } else {
-            el.style.display = '';
-          }
+          /* L2 sub-sub-ítems: ya manejados arriba */
+          if (l2Items.indexOf(el) < 0) el.style.display = '';
         }
       });
 
       /* Handler L1: toggle grupo completo */
       g.hdr.addEventListener('click', function() {
         var s = gs();
-        var nowOpen = s[g.id] !== false;
-        nowOpen = !nowOpen;
+        var nowOpen = !(s[g.id] === true);
         s[g.id] = nowOpen;
         ss(s);
         chv.classList.toggle('wk-open', nowOpen);
@@ -351,10 +349,10 @@ ACCORDION_INJECT = r"""
           if (!nowOpen) {
             el.style.display = 'none';
           } else {
-            /* Restaurar: respetar estado L2 para sub-sub-ítems */
+            /* Respetar estado L2 para sub-sub-ítems */
             if (l2Items.indexOf(el) >= 0) {
               var psg = findParentL2(l2, el);
-              el.style.display = (psg && s[psg.id] !== false) ? '' : 'none';
+              el.style.display = (psg && s[psg.id] === true) ? '' : 'none';
             } else {
               el.style.display = '';
             }
@@ -370,7 +368,7 @@ ACCORDION_INJECT = r"""
   var tries = 0;
   var iv = setInterval(function() { if (init() || ++tries > 60) clearInterval(iv); }, 250);
 
-  /* Re-inicializar en cambios de ruta (Vue Router) */
+  /* Re-inicializar en cambios de ruta (Vue Router pushState) */
   var _push = history.pushState;
   history.pushState = function() {
     _push.apply(history, arguments);
