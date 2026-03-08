@@ -56,11 +56,13 @@ caspm.urgpedia.cl {
         root * /srv/urgpedia
         file_server
     }
+    @login path /login
+    redir @login /login/81ff3df8-2a3f-4073-b335-38d113f6da22 302
     reverse_proxy localhost:3000
 }
 ```
 
-> **Nota**: no forzar redirects de `/` a `/login/{$AUTH0_STRATEGY_UUID}` desde Caddy. Wiki.js ya redirige a `/` al terminar el callback social; si el proxy reenvía esa ruta al login social se produce un loop.
+> **Nota sobre redirects**: redirigir `/login` (exact match) a Auth0, NO `/`. El callback `/login/81ff3df8-.../callback` no matchea `path /login` y pasa al reverse proxy. Post-login Wiki.js redirige a `/` y Caddy no lo intercepta → sin loop.
 > Los assets se sirven desde `caspm.urgpedia.cl/assets/` (mismo origen que Wiki.js) para evitar el bloqueo por CSP `img-src 'self'` que impone Wiki.js.
 
 | URL | Resultado |
