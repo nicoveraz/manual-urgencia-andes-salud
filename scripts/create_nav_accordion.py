@@ -146,7 +146,10 @@ nav_items = [
     lnk("Pediatría",          "/es/protocolos-clinicos/por-patologia/pediatria"),
     lnk("Toxicología",        "/es/protocolos-clinicos/por-patologia/toxicologia"),
     lnk("Psiquiatría",        "/es/protocolos-clinicos/por-patologia/psiquiatria"),
-    lnk("Procedimientos",     "/es/protocolos-clinicos/por-patologia/procedimientos"),
+    # L2 sub-grupo C: Procedimientos
+    lnk("Procedimientos",              "/es/protocolos-clinicos/por-patologia/procedimientos", "mdi-chevron-right"),
+    lnk("Manejo de Vía Aérea",        "/es/protocolos-clinicos/por-patologia/procedimientos/manejo-via-aerea"),
+    lnk("Sedación Post-Intubación",   "/es/protocolos-clinicos/por-patologia/procedimientos/sedacion-post-intubacion"),
 
     div(),
 
@@ -445,8 +448,117 @@ ACCORDION_INJECT = r"""
       if (nav) delete nav.dataset.wkInit;
       tries = 0;
       var iv2 = setInterval(function() { if (init() || ++tries > 60) clearInterval(iv2); }, 250);
+      setTimeout(wkInitCalcs, 400);
     }, 200);
   };
+})();
+
+/* ── Calculadoras de dosis ── */
+(function() {
+  function f(v, d) { return +(v).toFixed(d === undefined ? 1 : d); }
+
+  function wkCalcSIR(p) {
+    var rows = [
+      ['Atropina',            '0.02 mg/kg · máx 0.5 mg', Math.min(f(p*0.02,2),0.5)+' mg',  'Premedicación pediátrica'],
+      ['Fentanilo inducción', '1–3 mcg/kg',               f(p*1,0)+'–'+f(p*3,0)+' mcg',     'Bolo lento IV'],
+      ['Etomidato estable',   '0.3 mg/kg',                f(p*0.3)+' mg',                    ''],
+      ['Etomidato inestable', '0.10–0.15 mg/kg',          f(p*0.10)+'–'+f(p*0.15)+' mg',    ''],
+      ['Succinilcolina',      '1–1.5 mg/kg',              f(p*1,0)+'–'+f(p*1.5,0)+' mg',    ''],
+      ['Rocuronio',           '1–1.5 mg/kg',              f(p*1,0)+'–'+f(p*1.5,0)+' mg',    'Si contraindicación succinilcolina'],
+    ];
+    return '<table style="width:100%;border-collapse:collapse;font-size:0.92em">'
+      +'<thead><tr>'
+      +'<th style="text-align:left;padding:5px 8px;border-bottom:2px solid rgba(4,72,142,0.35)">Fármaco</th>'
+      +'<th style="text-align:left;padding:5px 8px;border-bottom:2px solid rgba(4,72,142,0.35);opacity:0.65;font-weight:400">Rango</th>'
+      +'<th style="text-align:right;padding:5px 8px;border-bottom:2px solid rgba(4,72,142,0.35)">Dosis ('+p+' kg)</th>'
+      +'<th style="text-align:left;padding:5px 8px;border-bottom:2px solid rgba(4,72,142,0.35);opacity:0.65;font-weight:400">Nota</th>'
+      +'</tr></thead><tbody>'
+      +rows.map(function(r) {
+        return '<tr style="border-bottom:1px solid rgba(128,128,128,0.12)">'
+          +'<td style="padding:5px 8px">'+r[0]+'</td>'
+          +'<td style="padding:5px 8px;opacity:0.6;font-size:0.88em">'+r[1]+'</td>'
+          +'<td style="padding:5px 8px;font-weight:700;text-align:right;color:var(--v-primary-base,#1565c0)">'+r[2]+'</td>'
+          +'<td style="padding:5px 8px;opacity:0.6;font-size:0.88em">'+r[3]+'</td>'
+          +'</tr>';
+      }).join('')+'</tbody></table>';
+  }
+
+  function wkCalcSed(p) {
+    var fL=f(p*1), fH=f(p*2), fRL=f(fL/10), fRH=f(fH/10);
+    var mL=f(p*0.03), mH=f(p*0.1);
+    var weightHtml = '<table style="width:100%;border-collapse:collapse;font-size:0.92em;margin-bottom:0.8rem">'
+      +'<thead><tr>'
+      +'<th style="text-align:left;padding:4px 8px;border-bottom:2px solid rgba(4,72,142,0.35)">Fármaco</th>'
+      +'<th style="text-align:left;padding:4px 8px;border-bottom:2px solid rgba(4,72,142,0.35);opacity:0.65;font-weight:400">Dosis/kg</th>'
+      +'<th style="text-align:right;padding:4px 8px;border-bottom:2px solid rgba(4,72,142,0.35)">Dosis/h</th>'
+      +'<th style="text-align:right;padding:4px 8px;border-bottom:2px solid rgba(4,72,142,0.35);color:var(--v-primary-base,#1565c0)">Vel. BIC</th>'
+      +'</tr></thead><tbody>'
+      +'<tr style="border-bottom:1px solid rgba(128,128,128,0.12)">'
+      +'<td style="padding:4px 8px">Fentanilo <small style="opacity:0.6">(10 mcg/mL)</small></td>'
+      +'<td style="padding:4px 8px;opacity:0.6;font-size:0.88em">1–2 mcg/kg/h</td>'
+      +'<td style="padding:4px 8px;text-align:right">'+fL+'–'+fH+' mcg/h</td>'
+      +'<td style="padding:4px 8px;text-align:right;font-weight:700;color:var(--v-primary-base,#1565c0)">'+fRL+'–'+fRH+' mL/h</td>'
+      +'</tr><tr>'
+      +'<td style="padding:4px 8px">Midazolam <small style="opacity:0.6">(1 mg/mL)</small></td>'
+      +'<td style="padding:4px 8px;opacity:0.6;font-size:0.88em">0.03–0.1 mg/kg/h</td>'
+      +'<td style="padding:4px 8px;text-align:right">'+mL+'–'+mH+' mg/h</td>'
+      +'<td style="padding:4px 8px;text-align:right;font-weight:700;color:var(--v-primary-base,#1565c0)">'+mL+'–'+mH+' mL/h</td>'
+      +'</tr></tbody></table>';
+    var escHtml = '<table style="width:100%;border-collapse:collapse;font-size:0.88em">'
+      +'<thead><tr style="border-bottom:2px solid rgba(4,72,142,0.35)">'
+      +'<th style="text-align:center;padding:4px 6px;width:3em">Esc.</th>'
+      +'<th style="text-align:left;padding:4px 6px">Fentanilo</th>'
+      +'<th style="text-align:right;padding:4px 6px;color:var(--v-primary-base,#1565c0)">Vel.</th>'
+      +'<th style="text-align:left;padding:4px 6px">Midazolam</th>'
+      +'<th style="text-align:right;padding:4px 6px;color:var(--v-primary-base,#1565c0)">Vel.</th>'
+      +'<th style="text-align:left;padding:4px 6px;opacity:0.65">Indicación</th>'
+      +'</tr></thead><tbody>'
+      +[['1','25 mcg/h','2.5 mL/h','—','—','Inicio analgesia'],
+        ['2','50 mcg/h','5 mL/h','—','—','Titular SAS 2–3'],
+        ['3','50 mcg/h','5 mL/h','2 mg/h','2 mL/h','SAS >2 con E2'],
+        ['4','100 mcg/h','10 mL/h','5 mg/h','5 mL/h','SAS >2 con E3'],
+        ['5','150 mcg/h','15 mL/h','10 mg/h','10 mL/h','Máximo'],
+      ].map(function(r,i) {
+        return '<tr style="border-bottom:1px solid rgba(128,128,128,0.1);'+(i%2?'':'background:rgba(4,72,142,0.04)')+'">'
+          +'<td style="text-align:center;padding:4px 6px;font-weight:700">'+r[0]+'</td>'
+          +'<td style="padding:4px 6px">'+r[1]+'</td>'
+          +'<td style="padding:4px 6px;text-align:right;font-weight:700;color:var(--v-primary-base,#1565c0)">'+r[2]+'</td>'
+          +'<td style="padding:4px 6px">'+r[3]+'</td>'
+          +'<td style="padding:4px 6px;text-align:right;font-weight:700;color:var(--v-primary-base,#1565c0)">'+r[4]+'</td>'
+          +'<td style="padding:4px 6px;opacity:0.65">'+r[5]+'</td>'
+          +'</tr>';
+      }).join('')+'</tbody></table>';
+    return '<strong style="display:block;margin-bottom:0.4rem">Dosis orientativas ('+p+' kg):</strong>'
+      + weightHtml
+      + '<strong style="display:block;margin-bottom:0.4rem">Escalones de sedación (preparación estándar):</strong>'
+      + escHtml;
+  }
+
+  window.wkInitCalcs = function() {
+    document.querySelectorAll('[data-calc]').forEach(function(el) {
+      if (el.dataset.calcInit) return;
+      el.dataset.calcInit = '1';
+      var input  = el.querySelector('[data-calc-input]');
+      var output = el.querySelector('[data-calc-output]');
+      var type   = el.dataset.calc;
+      if (!input || !output) return;
+      function update() {
+        var p = parseFloat(input.value) || 70;
+        if (type === 'sir')     output.innerHTML = wkCalcSIR(p);
+        if (type === 'sedacion') output.innerHTML = wkCalcSed(p);
+      }
+      input.addEventListener('input', update);
+      update();
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wkInitCalcs);
+  } else {
+    wkInitCalcs();
+  }
+  var _calcObs = new MutationObserver(function() { setTimeout(wkInitCalcs, 300); });
+  _calcObs.observe(document.body, { childList: true, subtree: false });
 })();
 </script>
 <!-- wk-accordion-end -->"""
