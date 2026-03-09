@@ -534,6 +534,41 @@ ACCORDION_INJECT = r"""
       + escHtml;
   }
 
+  function wkCalcNorepi(p) {
+    var preps = [
+      { name: '4 mg / 250 mL SF', conc: 16 },
+      { name: '4 mg / 100 mL SF', conc: 40 },
+    ];
+    var doses = [0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1.0];
+    var C = 'color:var(--v-primary-base,#1565c0)';
+    var H = '<table style="width:100%;border-collapse:collapse;font-size:0.9em">'
+      +'<thead><tr style="border-bottom:2px solid rgba(4,72,142,0.35)">'
+      +'<th style="text-align:left;padding:5px 8px">Dosis</th>'
+      +'<th style="text-align:right;padding:5px 8px;opacity:0.6;font-weight:400">mcg/h</th>'
+      +preps.map(function(pr) {
+        return '<th style="text-align:right;padding:5px 8px;'+C+'">'
+          +pr.name+'<br><small style="font-weight:400;opacity:0.7">('+pr.conc+' mcg/mL)</small></th>';
+      }).join('')
+      +'</tr></thead><tbody>'
+      +doses.map(function(dose, j) {
+        var mcgh = f(dose*p*60, 0);
+        return '<tr style="border-bottom:1px solid rgba(128,128,128,0.1);'+(j%2?'':'background:rgba(4,72,142,0.03)')+'">'
+          +'<td style="padding:5px 8px;font-weight:'+(dose===0.1?'700':'400')+'">'+dose+' mcg/kg/min</td>'
+          +'<td style="text-align:right;padding:5px 8px;opacity:0.6;font-size:0.88em">'+mcgh+'</td>'
+          +preps.map(function(pr) {
+            return '<td style="text-align:right;padding:5px 8px;font-weight:700;'+C+'">'
+              +f(dose*p*60/pr.conc, 1)+' mL/h</td>';
+          }).join('')
+          +'</tr>';
+      }).join('')
+      +'</tbody></table>'
+      +'<p style="font-size:0.82em;opacity:0.65;margin-top:0.5rem">'
+      +'⚠️ Vía periférica: preferir 16 mcg/mL (4 mg/250 mL) en vena de buen calibre. '
+      +'Máximo periférico: 40 mcg/mL. Cambiar a acceso central a la brevedad.'
+      +'</p>';
+    return '<strong style="display:block;margin-bottom:0.5rem">Velocidades de infusión ('+p+' kg):</strong>'+H;
+  }
+
   window.wkInitCalcs = function() {
     document.querySelectorAll('[data-calc]').forEach(function(el) {
       if (el.dataset.calcInit) return;
@@ -544,8 +579,9 @@ ACCORDION_INJECT = r"""
       if (!input || !output) return;
       function update() {
         var p = parseFloat(input.value) || 70;
-        if (type === 'sir')     output.innerHTML = wkCalcSIR(p);
+        if (type === 'sir')      output.innerHTML = wkCalcSIR(p);
         if (type === 'sedacion') output.innerHTML = wkCalcSed(p);
+        if (type === 'norepi')   output.innerHTML = wkCalcNorepi(p);
       }
       input.addEventListener('input', update);
       update();
