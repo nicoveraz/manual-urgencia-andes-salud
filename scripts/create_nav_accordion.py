@@ -87,10 +87,15 @@ nav_items = [
     # ── L1: Marco Legal ───────────────────────────────────────────────────────
     hdr("Marco Legal", "mdi-gavel"),
     lnk("Ley de Urgencia",       "/es/marco-legal/ley-de-urgencia"),
+    lnk("↳ Decreto 34 / Condiciones Clínicas", "/es/marco-legal/ley-de-urgencia/decreto-34", ""),
     lnk("Accidentes del Trabajo","/es/marco-legal/accidentes-del-trabajo"),
+    lnk("↳ Mutual",              "/es/marco-legal/accidentes-del-trabajo/mutual", ""),
+    lnk("↳ IST",                 "/es/marco-legal/accidentes-del-trabajo/ist", ""),
     lnk("Licencias Médicas",     "/es/marco-legal/licencias-medicas"),
+    lnk("↳ Decreto 7 / Guías Clínicas", "/es/marco-legal/licencias-medicas/decreto-7", ""),
     lnk("ENO",                   "/es/marco-legal/eno"),
     lnk("GES/AUGE",              "/es/marco-legal/ges-auge"),
+    lnk("Prescripción de Medicamentos", "/es/marco-legal/prescripcion-medicamentos"),
     lnk("Violencia y Maltrato",  "/es/marco-legal/violencia-y-maltrato"),
     lnk("Otros Marcos Legales",  "/es/marco-legal/otros"),
 
@@ -200,35 +205,41 @@ ACCORDION_INJECT = r"""
 .wk-sub2 .v-list-item__title { font-size: 0.78rem !important; opacity: 0.85; }
 .wk-sub2 .v-list-item__icon  { min-width: 16px !important; }
 
-/* Ítem activo: negrita + blanco */
+/* Ítem activo: negrita + blanco + barra lateral + fondo */
+.wk-active {
+  background: rgba(255,255,255,0.1) !important;
+  box-shadow: inset 3px 0 0 rgba(255,255,255,0.6) !important;
+}
 .wk-active .v-list-item__title {
   font-weight: 700 !important;
   color: #ffffff !important;
   opacity: 1 !important;
 }
+.wk-active .v-list-item__icon .mdi { color: #ffffff !important; opacity: 1 !important; }
 
-/* Botón "Cerrar todo" */
-.wk-ctrl {
-  display: flex;
-  justify-content: flex-end;
-  padding: 4px 12px;
-}
+/* Botón "Cerrar todo": ícono redondo en la fila de Inicio */
 .wk-ctrl-btn {
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
   background: none;
-  border: none;
   cursor: pointer;
-  color: rgba(255,255,255,0.4);
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 4px;
+  color: rgba(255,255,255,0.45);
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  transition: color 0.2s, background 0.2s;
-  font-family: inherit;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  padding: 0;
 }
-.wk-ctrl-btn:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.08); }
-.wk-ctrl-btn .mdi  { font-size: 14px !important; }
+.wk-ctrl-btn:hover {
+  color: rgba(255,255,255,0.9);
+  border-color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.1);
+}
+.wk-ctrl-btn .mdi { font-size: 14px !important; line-height: 1; }
 </style>
 <script>
 (function () {
@@ -269,23 +280,26 @@ ACCORDION_INJECT = r"""
     });
   }
 
-  /* ── Botón "Cerrar todo" ── */
+  /* ── Botón "Cerrar todo": ícono redondo en la fila de Inicio ── */
   function injectCtrlBtn(nav) {
-    if (nav.querySelector('.wk-ctrl')) return;
-    var ctrl = document.createElement('div');
-    ctrl.className = 'wk-ctrl';
+    var homeLink = null;
+    Array.from(nav.querySelectorAll('a.v-list-item--link')).forEach(function(el) {
+      if (!homeLink && el.getAttribute('href') === '/es/home') homeLink = el;
+    });
+    if (!homeLink || homeLink.querySelector('.wk-ctrl-btn')) return;
     var btn = document.createElement('button');
     btn.className = 'wk-ctrl-btn';
     btn.title = 'Cerrar todos los grupos';
-    btn.innerHTML = '<i class="mdi mdi-unfold-less-horizontal"></i><span>Cerrar todo</span>';
-    btn.addEventListener('click', function() {
+    btn.innerHTML = '<i class="mdi mdi-unfold-less-horizontal"></i>';
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
       nav.querySelectorAll('.wk-sub, .wk-sub2').forEach(function(el) { el.style.display = 'none'; });
       nav.querySelectorAll('.wk-chv').forEach(function(el)     { el.classList.remove('wk-open'); });
       nav.querySelectorAll('.wk-sub-chv').forEach(function(el) { el.classList.remove('wk-open'); });
       ss({});
     });
-    ctrl.appendChild(btn);
-    nav.insertBefore(ctrl, nav.firstChild);
+    homeLink.appendChild(btn);
   }
 
   /* ── Inicializar acordeón ── */
@@ -296,10 +310,7 @@ ACCORDION_INJECT = r"""
 
     var state      = gs();
     var activePath = window.location.pathname;
-    /* Excluir el botón de control si ya fue inyectado */
-    var children = Array.from(nav.children).filter(function(el) {
-      return !el.classList.contains('wk-ctrl');
-    });
+    var children   = Array.from(nav.children);
 
     /* Paso 1: agrupar por L1
        — "header" kind → DIV.v-subheader

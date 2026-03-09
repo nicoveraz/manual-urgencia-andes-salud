@@ -87,6 +87,21 @@ a:hover {
   border-top: 2px solid #04488e !important;
 }
 
+/* FAB principal - ícono blanco sobre fondo azul */
+.v-speed-dial > .v-btn--fab .v-icon,
+.v-btn--fab.primary .v-icon {
+  color: #ffffff !important;
+}
+
+/* Mobile: padding superior en header de página (títulos largos que envuelven) */
+@media (max-width: 959px) {
+  .page-header-section {
+    height: auto !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+}
+
 /* Scrollbar personalizada */
 ::-webkit-scrollbar-thumb {
   background-color: #04488e;
