@@ -540,10 +540,24 @@ ACCORDION_INJECT = r"""
       { name: '4 mg / 100 mL SF', conc: 40 },
     ];
     var doses = [0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 1.0];
-    var C = 'color:var(--v-primary-base,#1565c0)';
-    var H = '<table style="width:100%;border-collapse:collapse;font-size:0.9em">'
+    // Máximo recomendado periférico: 0.5 mcg/kg/min
+    var MAX_PERIPH = 0.5;
+    var maxMcgMin  = f(MAX_PERIPH * p, 1);
+    var C  = 'color:var(--v-primary-base,#1565c0)';
+    var CW = 'color:#e65100';   // naranja advertencia
+    // Chip resumen dosis máxima
+    var chip = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:0.7rem;'
+      +'background:rgba(230,81,0,0.08);border:1px solid rgba(230,81,0,0.3);'
+      +'border-radius:6px;padding:0.5rem 0.8rem;font-size:0.9em">'
+      +'<span style="font-size:1.1em">⚠️</span>'
+      +'<span>Dosis máx. recomendada para vía periférica: '
+      +'<strong style="'+CW+'">'+MAX_PERIPH+' mcg/kg/min</strong>'
+      +' = <strong style="'+CW+'">'+maxMcgMin+' mcg/min</strong>'
+      +' ('+p+' kg)</span></div>';
+    var table = '<table style="width:100%;border-collapse:collapse;font-size:0.9em">'
       +'<thead><tr style="border-bottom:2px solid rgba(4,72,142,0.35)">'
       +'<th style="text-align:left;padding:5px 8px">Dosis</th>'
+      +'<th style="text-align:right;padding:5px 8px;opacity:0.6;font-weight:400">mcg/min</th>'
       +'<th style="text-align:right;padding:5px 8px;opacity:0.6;font-weight:400">mcg/h</th>'
       +preps.map(function(pr) {
         return '<th style="text-align:right;padding:5px 8px;'+C+'">'
@@ -551,22 +565,32 @@ ACCORDION_INJECT = r"""
       }).join('')
       +'</tr></thead><tbody>'
       +doses.map(function(dose, j) {
-        var mcgh = f(dose*p*60, 0);
-        return '<tr style="border-bottom:1px solid rgba(128,128,128,0.1);'+(j%2?'':'background:rgba(4,72,142,0.03)')+'">'
-          +'<td style="padding:5px 8px;font-weight:'+(dose===0.1?'700':'400')+'">'+dose+' mcg/kg/min</td>'
+        var over   = dose > MAX_PERIPH;
+        var warn   = dose === MAX_PERIPH;
+        var rowBg  = over  ? 'background:rgba(230,81,0,0.07)'
+                   : warn  ? 'background:rgba(230,81,0,0.04)'
+                   : j%2===0 ? 'background:rgba(4,72,142,0.03)' : '';
+        var mcgMin = f(dose*p, 1);
+        var mcgh   = f(dose*p*60, 0);
+        var dColor = over ? CW : warn ? CW : '';
+        var dBold  = (dose===0.1||over||warn) ? '700' : '400';
+        return '<tr style="border-bottom:1px solid rgba(128,128,128,0.1);'+rowBg+'">'
+          +'<td style="padding:5px 8px;font-weight:'+dBold+';'+dColor+'">'
+            +dose+' mcg/kg/min'+(over?' ⚠️':warn?' ⚑':'')+' </td>'
+          +'<td style="text-align:right;padding:5px 8px;font-weight:'+dBold+';'+dColor+'">'+mcgMin+'</td>'
           +'<td style="text-align:right;padding:5px 8px;opacity:0.6;font-size:0.88em">'+mcgh+'</td>'
           +preps.map(function(pr) {
-            return '<td style="text-align:right;padding:5px 8px;font-weight:700;'+C+'">'
+            return '<td style="text-align:right;padding:5px 8px;font-weight:700;'+(over?CW:C)+'">'
               +f(dose*p*60/pr.conc, 1)+' mL/h</td>';
           }).join('')
           +'</tr>';
       }).join('')
       +'</tbody></table>'
       +'<p style="font-size:0.82em;opacity:0.65;margin-top:0.5rem">'
-      +'⚠️ Vía periférica: preferir 16 mcg/mL (4 mg/250 mL) en vena de buen calibre. '
-      +'Máximo periférico: 40 mcg/mL. Cambiar a acceso central a la brevedad.'
+      +'Concentración máxima periférica: 40 mcg/mL · Preferir acceso central si dosis > '+MAX_PERIPH+' mcg/kg/min o uso prolongado.'
       +'</p>';
-    return '<strong style="display:block;margin-bottom:0.5rem">Velocidades de infusión ('+p+' kg):</strong>'+H;
+    return '<strong style="display:block;margin-bottom:0.5rem">Velocidades de infusión ('+p+' kg):</strong>'
+      + chip + table;
   }
 
   window.wkInitCalcs = function() {
