@@ -163,6 +163,7 @@ nav_items = [
     lnk("Severidad",           "/es/calculadoras/severidad"),
     lnk("Pediatría",           "/es/calculadoras/pediatria"),
     lnk("Obstetricia",         "/es/calculadoras/obstetricia"),
+    lnk("Quemados",            "/es/calculadoras/quemados"),
 ]
 
 nav_config = [
@@ -593,21 +594,138 @@ ACCORDION_INJECT = r"""
       + chip + table;
   }
 
+  /* ── Superficie corporal quemada (Regla de 9 / Lund-Browder) ── */
+  function wkCalcQuemadosSC(v) {
+    var modo = v.modo || 'adulto';
+    var edad = v.edad || 25;
+    var REG = [
+      { k:'cab',    l:'Cabeza y cuello',         r:function(e,m){ return m==='pediatrico'&&e<15?(e<=1?18:e<=4?15:e<=9?13:11):9; } },
+      { k:'tant',   l:'Tronco anterior',          r:function(e,m){ return m==='pediatrico'&&e<15?13:18; } },
+      { k:'tpost',  l:'Tronco posterior',         r:function(e,m){ return m==='pediatrico'&&e<15?13:18; } },
+      { k:'brad',   l:'Brazo derecho (completo)', r:function(){ return 9; } },
+      { k:'brai',   l:'Brazo izquierdo (completo)',r:function(){ return 9; } },
+      { k:'pierd',  l:'Pierna derecha (completa)',r:function(e,m){ return m==='pediatrico'&&e<15?(e<=1?13:e<=4?14:e<=9?15:17):18; } },
+      { k:'pieri',  l:'Pierna izquierda (completa)',r:function(e,m){ return m==='pediatrico'&&e<15?(e<=1?13:e<=4?14:e<=9?15:17):18; } },
+      { k:'perine', l:'Genitales / periné',       r:function(){ return 1; } },
+    ];
+    var total = 0;
+    REG.forEach(function(r){ total += parseFloat(v[r.k])||0; });
+    total = Math.round(total*10)/10;
+    var gran = modo==='pediatrico' ? total>=15 : total>=20;
+    var sevLabel, sevC;
+    if      (total<10)                              { sevLabel='Menor';              sevC='#2e7d32'; }
+    else if (total<(modo==='pediatrico'?15:20))     { sevLabel='Moderada';           sevC='#e65100'; }
+    else if (total<40)                              { sevLabel='Gran Quemado';        sevC='#b71c1c'; }
+    else                                            { sevLabel='Gran Quemado Crítico';sevC='#b71c1c'; }
+    var refRows = REG.map(function(r){
+      var val=parseFloat(v[r.k])||0, ref=r.r(edad,modo);
+      return '<tr style="border-bottom:1px solid rgba(128,128,128,0.08)">'
+        +'<td style="padding:3px 8px;font-size:0.88em">'+r.l+'</td>'
+        +'<td style="text-align:right;padding:3px 8px;font-size:0.82em;opacity:0.55">'+ref+'%</td>'
+        +'<td style="text-align:right;padding:3px 8px;font-weight:700;color:'+(val>0?sevC:'inherit')+'">'+val+'%</td>'
+        +'</tr>';
+    }).join('');
+    return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:0.8rem">'
+      +'<span style="font-size:2.2em;font-weight:700;color:'+sevC+'">'+total+'%</span>'
+      +'<div style="flex:1"><div style="font-weight:700;color:'+sevC+'">'+sevLabel+'</div>'
+      +'<div style="background:rgba(128,128,128,0.15);border-radius:4px;height:10px;overflow:hidden;margin:4px 0">'
+      +'<div style="height:100%;width:'+Math.min(total,100)+'%;background:'+sevC+';border-radius:4px;transition:width 0.3s"></div></div>'
+      +'<div style="font-size:0.8em;opacity:0.6">SCQ — '+(modo==='pediatrico'?'pediátrico':'adulto')+'</div>'
+      +'</div></div>'
+      +(gran?'<div style="background:rgba(183,28,28,0.1);border:1px solid rgba(183,28,28,0.4);'
+        +'border-radius:6px;padding:0.4rem 0.8rem;font-size:0.88em;margin-bottom:0.8rem">'
+        +'🔴 <strong>Criterios de Gran Quemado</strong> — UCI/UCQ · Fórmula de Parkland indicada</div>':'')
+      +'<details style="cursor:pointer"><summary style="font-size:0.85em;opacity:0.65;padding:2px 0">Referencia por región ('
+      +(modo==='pediatrico'?'Lund-Browder, '+edad+' a':'Regla de los 9')
+      +')</summary><table style="width:100%;border-collapse:collapse;margin-top:4px">'
+      +'<tr style="border-bottom:1px solid rgba(128,128,128,0.2)">'
+      +'<th style="text-align:left;padding:3px 8px;font-size:0.82em">Región</th>'
+      +'<th style="text-align:right;padding:3px 8px;font-weight:400;opacity:0.6;font-size:0.82em">Ref</th>'
+      +'<th style="text-align:right;padding:3px 8px;font-size:0.82em">Quemado</th></tr>'
+      +refRows+'</table></details>';
+  }
+
+  /* ── Volumen resucitación gran quemado (Parkland) ── */
+  function wkCalcQuemadosVol(v) {
+    var modo  = v.modo  || 'adulto';
+    var peso  = v.peso  || 70;
+    var scq   = v.scq   || 0;
+    var horas = Math.min(v.horas||0, 8);
+    if (scq<=0) return '<p style="opacity:0.5;font-size:0.9em;margin:0">Ingresa % SCQ para calcular.</p>';
+    var park24 = 4*peso*scq;
+    var park1  = park24/2;
+    var park2  = park24/2;
+    var hRest  = Math.max(8-horas, 0);
+    var rate1  = hRest>0 ? Math.round(park1/hRest) : 0;
+    var rate2  = Math.round(park2/16);
+    var C = 'color:var(--v-primary-base,#1565c0)';
+    var maintRow = '';
+    if (modo==='pediatrico') {
+      var maintDay = peso<=10 ? peso*100 : peso<=20 ? 1000+(peso-10)*50 : 1500+(peso-20)*20;
+      var mh = Math.round(maintDay/24);
+      maintRow = '<tr style="border-bottom:1px solid rgba(128,128,128,0.1);background:rgba(4,72,142,0.03)">'
+        +'<td style="padding:5px 8px;opacity:0.75">+ Mantención (Holliday-Segar)</td>'
+        +'<td style="text-align:right;padding:5px 8px;'+C+'">'+maintDay+' mL/día</td>'
+        +'<td style="text-align:right;padding:5px 8px;font-weight:700;'+C+'">'+mh+' mL/h</td></tr>'
+        +'<tr style="border-top:2px solid rgba(4,72,142,0.25)">'
+        +'<td style="padding:5px 8px;font-weight:700">Total 1er período (resusc+mant)</td>'
+        +'<td></td><td style="text-align:right;padding:5px 8px;font-weight:700;'+C+'">'+(hRest>0?rate1+mh:0)+' mL/h</td></tr>'
+        +'<tr><td style="padding:5px 8px;font-weight:700">Total 2do período (resusc+mant)</td>'
+        +'<td></td><td style="text-align:right;padding:5px 8px;font-weight:700;'+C+'">'+(rate2+mh)+' mL/h</td></tr>';
+    }
+    return '<table style="width:100%;border-collapse:collapse;font-size:0.92em">'
+      +'<thead><tr style="border-bottom:2px solid rgba(4,72,142,0.35)">'
+      +'<th style="text-align:left;padding:5px 8px">Parámetro</th>'
+      +'<th style="text-align:right;padding:5px 8px;'+C+'">Volumen</th>'
+      +'<th style="text-align:right;padding:5px 8px;'+C+'">Vel. BIC</th>'
+      +'</tr></thead><tbody>'
+      +'<tr style="border-bottom:1px solid rgba(128,128,128,0.1)">'
+      +'<td style="padding:5px 8px">Total 24h (Parkland: 4×'+peso+'×'+scq+'%)</td>'
+      +'<td style="text-align:right;padding:5px 8px;font-weight:700;'+C+'">'+Math.round(park24)+' mL</td>'
+      +'<td></td></tr>'
+      +'<tr style="background:rgba(4,72,142,0.03);border-bottom:1px solid rgba(128,128,128,0.1)">'
+      +'<td style="padding:5px 8px">Primeras 8h desde quemadura (50%)'+(hRest<8?' — restan '+f(hRest,1)+'h':'')+'</td>'
+      +'<td style="text-align:right;padding:5px 8px;'+C+'">'+Math.round(park1)+' mL</td>'
+      +'<td style="text-align:right;padding:5px 8px;font-weight:700;'+C+'">'+(hRest>0?rate1+' mL/h':'— completado')+'</td></tr>'
+      +'<tr style="border-bottom:1px solid rgba(128,128,128,0.1)">'
+      +'<td style="padding:5px 8px">Siguientes 16h (50%)</td>'
+      +'<td style="text-align:right;padding:5px 8px;'+C+'">'+Math.round(park2)+' mL</td>'
+      +'<td style="text-align:right;padding:5px 8px;font-weight:700;'+C+'">'+rate2+' mL/h</td></tr>'
+      +maintRow
+      +'</tbody></table>'
+      +'<p style="font-size:0.82em;opacity:0.6;margin-top:0.5rem">'
+      +'Ringer Lactato · Titular diuresis: '+(modo==='pediatrico'?'niño 1 mL/kg/h':'adulto 0.5 mL/kg/h')
+      +(modo==='pediatrico'?' · Mantención con DRL 5%':'')+'.</p>';
+  }
+
   window.wkInitCalcs = function() {
     document.querySelectorAll('[data-calc]').forEach(function(el) {
       if (el.dataset.calcInit) return;
       el.dataset.calcInit = '1';
-      var input  = el.querySelector('[data-calc-input]');
       var output = el.querySelector('[data-calc-output]');
       var type   = el.dataset.calc;
-      if (!input || !output) return;
-      function update() {
-        var p = parseFloat(input.value) || 70;
-        if (type === 'sir')      output.innerHTML = wkCalcSIR(p);
-        if (type === 'sedacion') output.innerHTML = wkCalcSed(p);
-        if (type === 'norepi')   output.innerHTML = wkCalcNorepi(p);
+      if (!output) return;
+      function collect() {
+        var v = {};
+        var si = el.querySelector('[data-calc-input]');
+        if (si) v.p = parseFloat(si.value) || 70;
+        el.querySelectorAll('input[name],select[name]').forEach(function(i) {
+          v[i.name] = i.tagName==='SELECT' ? i.value : (parseFloat(i.value)||0);
+        });
+        return v;
       }
-      input.addEventListener('input', update);
+      function update() {
+        var v = collect();
+        if (type==='sir')          output.innerHTML = wkCalcSIR(v.p||70);
+        if (type==='sedacion')     output.innerHTML = wkCalcSed(v.p||70);
+        if (type==='norepi')       output.innerHTML = wkCalcNorepi(v.p||70);
+        if (type==='quemados-sc')  output.innerHTML = wkCalcQuemadosSC(v);
+        if (type==='quemados-vol') output.innerHTML = wkCalcQuemadosVol(v);
+      }
+      el.querySelectorAll('input,select').forEach(function(i){
+        i.addEventListener('input', update);
+        i.addEventListener('change', update);
+      });
       update();
     });
   };
