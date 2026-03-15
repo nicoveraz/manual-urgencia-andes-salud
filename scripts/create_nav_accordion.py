@@ -113,6 +113,7 @@ nav_items = [
     # ── L1: Protocolos de Calidad ─────────────────────────────────────────────
     hdr("Protocolos de Calidad", "mdi-shield-check"),
     lnk("Seguridad del Paciente","/es/protocolos-calidad/seguridad-del-paciente"),
+    lnk("↳ Caída del Paciente",  "/es/protocolos-calidad/seguridad-del-paciente/caida", ""),
     lnk("IAAS",                  "/es/protocolos-calidad/iaas"),
     lnk("Indicadores",           "/es/protocolos-calidad/indicadores"),
     lnk("Eventos Adversos",      "/es/protocolos-calidad/eventos-adversos"),
@@ -132,10 +133,12 @@ nav_items = [
     lnk("Fiebre sin Foco",          "/es/protocolos-clinicos/por-presentacion/fiebre-sin-foco"),
     lnk("Trauma",                   "/es/protocolos-clinicos/por-presentacion/trauma"),
     lnk("Crisis Hipertensiva",      "/es/protocolos-clinicos/por-presentacion/crisis-hipertensiva"),
+    lnk("Paro Cardiorrespiratorio", "/es/protocolos-clinicos/por-presentacion/paro-cardiorrespiratorio"),
 
     # L2 sub-grupo B: Por Patología (mdi-chevron-right = L2 toggle)
     lnk("Por Patología", "/es/protocolos-clinicos/por-patologia", "mdi-chevron-right"),
     lnk("Cardiovascular",     "/es/protocolos-clinicos/por-patologia/cardiovascular"),
+    lnk("↳ Taquiarritmias",  "/es/protocolos-clinicos/por-patologia/cardiovascular/taquiarritmias", ""),
     lnk("Respiratorio",       "/es/protocolos-clinicos/por-patologia/respiratorio"),
     lnk("Neurológico",        "/es/protocolos-clinicos/por-patologia/neurologico"),
     lnk("Traumatología",      "/es/protocolos-clinicos/por-patologia/traumatologia"),
@@ -149,21 +152,28 @@ nav_items = [
     # L2 sub-grupo C: Procedimientos
     lnk("Procedimientos",              "/es/protocolos-clinicos/por-patologia/procedimientos", "mdi-chevron-right"),
     lnk("Manejo de Vía Aérea",        "/es/protocolos-clinicos/por-patologia/procedimientos/manejo-via-aerea"),
+    lnk("Intubación Rápida",          "/es/protocolos-clinicos/por-patologia/procedimientos/intubacion-rapida"),
     lnk("Sedación Post-Intubación",   "/es/protocolos-clinicos/por-patologia/procedimientos/sedacion-post-intubacion"),
 
     div(),
 
     # ── L1: Calculadoras ──────────────────────────────────────────────────────
     hdr("Calculadoras", "mdi-calculator"),
-    lnk("Analgesia y Sedación","/es/calculadoras/analgesia-y-sedacion"),
-    lnk("Antibióticos",        "/es/calculadoras/antibioticos"),
-    lnk("Fluidoterapia",       "/es/calculadoras/fluidoterapia"),
-    lnk("Cardiovascular",      "/es/calculadoras/cardiovascular"),
-    lnk("Neurológico",         "/es/calculadoras/neurologico"),
-    lnk("Severidad",           "/es/calculadoras/severidad"),
-    lnk("Pediatría",           "/es/calculadoras/pediatria"),
-    lnk("Obstetricia",         "/es/calculadoras/obstetricia"),
-    lnk("Quemados",            "/es/calculadoras/quemados"),
+    lnk("Analgesia y Sedación",    "/es/calculadoras/analgesia-y-sedacion"),
+    lnk("Infusiones Vasoactivas",  "/es/calculadoras/infusiones-vasoactivas"),
+    lnk("Fármacos de Urgencia",    "/es/calculadoras/farmacos-de-urgencia"),
+    lnk("Sangrado y Anticoag.",    "/es/calculadoras/sangrado-anticoagulacion"),
+    lnk("Glicemia",                "/es/calculadoras/glicemia"),
+    lnk("Ajuste TACO / Heparina",  "/es/calculadoras/ajuste-inr-ttpk"),
+    lnk("Electrolitos",            "/es/calculadoras/electrolitos"),
+    lnk("Antibióticos",            "/es/calculadoras/antibioticos"),
+    lnk("Fluidoterapia",           "/es/calculadoras/fluidoterapia"),
+    lnk("Cardiovascular",          "/es/calculadoras/cardiovascular"),
+    lnk("Neurológico",             "/es/calculadoras/neurologico"),
+    lnk("Severidad",               "/es/calculadoras/severidad"),
+    lnk("Pediatría",               "/es/calculadoras/pediatria"),
+    lnk("Obstetricia",             "/es/calculadoras/obstetricia"),
+    lnk("Quemados",                "/es/calculadoras/quemados"),
 ]
 
 nav_config = [
