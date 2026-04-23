@@ -1,0 +1,67 @@
+<script data-urgpedia-favicon>
+(function () {
+  function setFavicon() {
+    var url = 'https://caspm.urgpedia.cl/assets/urgpedia-favicon.svg';
+    document.querySelectorAll('link[rel*="icon"]').forEach(function (el) {
+      el.parentNode.removeChild(el);
+    });
+    var link = document.createElement('link');
+    link.rel = 'icon';
+    link.type = 'image/svg+xml';
+    link.href = url;
+    document.head.appendChild(link);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setFavicon);
+  } else {
+    setFavicon();
+  }
+})();
+</script>
+<script data-urgpedia-accordion-v4>
+(function () {
+  // Wiki.js sidebar: `.wk-hdr` rows flip `.wk-open` on their `.wk-chv`
+  // child and toggle `display: none` on following `.wk-sub` / `.wk-sub2`
+  // items until the next `.wk-hdr`. Accordion = when one header opens,
+  // directly close every other open section via DOM manipulation.
+
+  function closeSection(header) {
+    var chv = header.querySelector('.wk-chv');
+    if (chv) chv.classList.remove('wk-open');
+    var n = header.nextElementSibling;
+    while (n && !n.classList.contains('wk-hdr')) {
+      if (n.classList.contains('v-divider')) break;
+      if (n.classList.contains('wk-sub') || n.classList.contains('wk-sub2')) {
+        n.style.display = 'none';
+      }
+      n = n.nextElementSibling;
+    }
+  }
+
+  function onHeaderClick(e) {
+    var header = e.target.closest('.v-navigation-drawer .wk-hdr');
+    if (!header) return;
+    setTimeout(function () {
+      var chv = header.querySelector('.wk-chv');
+      if (!chv || !chv.classList.contains('wk-open')) return;
+      document.querySelectorAll('.v-navigation-drawer .wk-hdr').forEach(function (o) {
+        if (o === header) return;
+        var oc = o.querySelector('.wk-chv');
+        if (oc && oc.classList.contains('wk-open')) closeSection(o);
+      });
+    }, 40);
+  }
+
+  function init() {
+    var drawer = document.querySelector('.v-navigation-drawer');
+    if (!drawer) { setTimeout(init, 500); return; }
+    drawer.addEventListener('click', onHeaderClick, false);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
