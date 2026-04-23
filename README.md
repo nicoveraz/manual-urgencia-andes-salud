@@ -11,6 +11,7 @@ Plataforma de conocimiento clínico para los equipos de urgencia de la **red And
 | Autenticación | Auth0 (SSO compartido entre clínicas) |
 | Reverse proxy / SSL | Caddy 2 (Let's Encrypt automático) |
 | Hosting | Oracle Cloud Free Tier — Ubuntu 22.04 |
+| Backup contenido | Git Storage (repo privado, SSH deploy key, sync) |
 
 ## Dominios
 
@@ -24,50 +25,35 @@ Plataforma de conocimiento clínico para los equipos de urgencia de la **red And
 
 ```
 manual-urgencia-andes-salud/
-├── assets/
-│   ├── urgpedia-icon.svg          # Ícono principal (fondo azul/oscuro)
-│   ├── urgpedia-icon-blue.svg     # Ícono azul (fondo blanco/claro)
-│   └── urgpedia-favicon.svg       # Favicon con fondo #455A64
-├── landing/
-│   └── index.html                 # Landing page urgpedia.cl
+├── assets/                         # SVGs de branding (icon, icon-blue, favicon)
+├── landing/index.html              # Landing page urgpedia.cl
 ├── docs/
-│   ├── ESTADO-ACTUAL.md           # Estado técnico completo (referencia de desarrollo)
-│   └── DEPLOYMENT.md              # Guía de primer despliegue
+│   ├── ESTADO-ACTUAL.md            # Estado técnico completo (referencia)
+│   ├── DEPLOYMENT.md               # Guía de primer despliegue
+│   └── WIKI-SCHEMA.md              # Estructura de contenido del wiki
 ├── scripts/
-│   ├── backup.sh                  # Backup de base de datos
-│   └── setup-oracle.sh            # Setup inicial Oracle Cloud
+│   ├── auto_nav.py                 # Auto-sync sidebar desde pages table (cron)
+│   ├── create_nav_accordion.py     # Inyecta CSS+JS del acordeón wk-*
+│   ├── backup.sh                   # Backup cifrado de la DB
+│   └── setup-oracle.sh             # Setup inicial Oracle Cloud
 ├── theme/
-│   └── custom.css                 # Estilos personalizados Wiki.js
+│   ├── custom.css                  # Estilos (tipo Substack, columna 780 px)
+│   ├── inject-head.html            # Favicon + script accordion-v4 (single-open)
+│   └── nav-accordion.js            # Accordion JS standalone (referencia)
+├── overrides/                      # login.pug + servers.js montados en wiki
 ├── docker-compose.yml
 └── .env.example
 ```
 
 ## Branding
 
-| Asset | Uso |
-|---|---|
-| `urgpedia-icon.svg` | Logo en header de Wiki.js (fondo azul `#04488e`) |
-| `urgpedia-icon-blue.svg` | Logo en nav de la landing (fondo blanco) |
-| `urgpedia-favicon.svg` | Favicon en browser tab (autónomo, fondo `#455A64`) |
+| Asset | Uso | Fondo óptimo |
+|---|---|---|
+| `urgpedia-icon.svg` | Hero landing page | Azul `#04488e` / oscuro |
+| `urgpedia-icon-blue.svg` | Header Wiki.js · nav landing | Blanco / gris claro |
+| `urgpedia-favicon.svg` | Browser tab | Cualquiera (autónomo) |
 
-Color primario: `#04488e`
-
-## Agregar una nueva clínica a la red
-
-1. **Servidor**: nuevo stack Docker (wiki + wiki-db) en puerto distinto
-2. **Caddy**: agregar bloque `nueva-clinica.urgpedia.cl` en `/etc/caddy/Caddyfile`
-3. **Auth0**: agregar `https://nueva-clinica.urgpedia.cl/login/<AUTH0_STRATEGY_UUID>/callback` en Allowed Callback URLs
-4. **Landing**: copiar bloque `.card` en `landing/index.html`, activar y actualizar datos
-
-Ver [docs/ESTADO-ACTUAL.md](docs/ESTADO-ACTUAL.md) para el estado técnico completo.
-
-## Roles de usuario
-
-| Rol | Permisos |
-|---|---|
-| `admin` | Gestión completa del sistema |
-| `editor` | Crear y editar contenido |
-| `viewer` | Solo lectura |
+Color primario: `#04488e`.
 
 ## Inicio rápido (desarrollo local)
 
@@ -80,15 +66,147 @@ docker compose up -d
 # Acceder en http://localhost:3000
 ```
 
+## Operaciones frecuentes (servidor producción)
+
+> Valores de `$SERVER_IP` y `$SSH_KEY_PATH` en `.env.local` (no commitear).
+
+```bash
+# SSH
+ssh -i $SSH_KEY_PATH ubuntu@$SERVER_IP
+
+# Contenedores
+docker ps                               # estado
+docker logs wiki --tail 50              # logs Wiki.js
+docker restart wiki                     # reinicio rápido
+
+# Base de datos
+docker exec wiki-db psql -U wikijs -d wiki
+
+# Caddy
+sudo caddy validate --config /etc/caddy/Caddyfile
+sudo systemctl reload caddy
+```
+
+## Sincronización del sidebar (auto-nav)
+
+El sidebar se reconstruye desde la tabla `pages` vía cron cada 10 min. Al crear o borrar páginas, el menú se actualiza solo.
+
+```bash
+# Ver preview sin aplicar
+python3 /usr/local/bin/auto_nav.py --dry
+
+# Forzar aplicación ignorando cache
+python3 /usr/local/bin/auto_nav.py --force
+
+# Ver logs cron
+tail -f /tmp/auto_nav.log
+```
+
+Configuración de secciones (prefijos → grupos L1/L2 con iconos): editar el `SECTIONS` en `scripts/auto_nav.py` y re-deploy.
+
+### Deploy del script
+
+```bash
+scp -i $SSH_KEY_PATH scripts/auto_nav.py ubuntu@$SERVER_IP:/tmp/auto_nav.py
+ssh -i $SSH_KEY_PATH ubuntu@$SERVER_IP 'sudo mv /tmp/auto_nav.py /usr/local/bin/auto_nav.py && sudo chmod +x /usr/local/bin/auto_nav.py'
+```
+
+### Acordeón del sidebar
+
+El mecanismo `wk-*` (headers colapsables, chevrons, botón "cerrar todo", highlight de página activa) se inyecta via `scripts/create_nav_accordion.py`. Si el acordeón se pierde (inject wipe / rollback), re-correr:
+
+```bash
+scp -i $SSH_KEY_PATH scripts/create_nav_accordion.py ubuntu@$SERVER_IP:/tmp/
+ssh -i $SSH_KEY_PATH ubuntu@$SERVER_IP 'python3 /tmp/create_nav_accordion.py'
+```
+
+## Theming
+
+CSS y JS viven en el campo `theming.injectCSS` / `injectHead` de la tabla `settings`. El archivo `theme/custom.css` es la fuente de verdad; el archivo en DB es la copia desplegada.
+
+### Aplicar CSS actualizado
+
+Paso 1 — desde el laptop:
+```bash
+scp -i $SSH_KEY_PATH theme/custom.css ubuntu@$SERVER_IP:/tmp/custom.css
+```
+
+Paso 2 — SSH al servidor y ejecutar:
+```bash
+docker cp /tmp/custom.css wiki-db:/tmp/theme.css
+docker exec -i wiki-db psql -U wikijs -d wiki <<< $'\\set css `cat /tmp/theme.css`\nUPDATE settings SET value = jsonb_set(value::jsonb, \'{injectCSS}\', to_jsonb(:\'css\'::text))::json WHERE key=\'theming\';'
+docker restart wiki
+```
+
+### Aplicar inject-head (favicon + accordion-v4)
+
+Laptop:
+```bash
+scp -i $SSH_KEY_PATH theme/inject-head.html ubuntu@$SERVER_IP:/tmp/inject-head.html
+```
+
+Servidor:
+```bash
+docker cp /tmp/inject-head.html wiki-db:/tmp/inject-head.html
+docker exec -i wiki-db psql -U wikijs -d wiki <<< $'\\set head `cat /tmp/inject-head.html`\nUPDATE settings SET value = jsonb_set(value::jsonb, \'{injectHead}\', to_jsonb(:\'head\'::text))::json WHERE key=\'theming\';'
+docker restart wiki
+```
+
+### Rollback de emergencia (pantalla blanca)
+
+Si un cambio de CSS/JS rompe el render, vaciar ambos campos y reconstruir:
+
+```bash
+docker exec wiki-db psql -U wikijs -d wiki -c "UPDATE settings SET value = jsonb_set(jsonb_set(value::jsonb, '{injectCSS}', '\"\"'::jsonb), '{injectHead}', '\"\"'::jsonb)::json WHERE key='theming';"
+docker restart wiki
+```
+
+Luego re-aplicar CSS e inject-head con los comandos anteriores.
+
+## Git Sync (backup del contenido del wiki)
+
+El contenido del wiki se sincroniza bidireccionalmente con un repo privado en GitHub (rama `main`, intervalo 10 min por defecto).
+
+| Parámetro | Valor |
+|---|---|
+| Repo | `git@github.com:nicoveraz/urgpedia-caspm-content.git` (privado) |
+| Auth | SSH deploy key con write access (ID `149191083`) |
+| Llave privada (servidor) | `/srv/wiki-git/id_ed25519` |
+| Modo | Sync (bidireccional) |
+
+**Agregar git-sync para otra clínica**: crear repo `urgpedia-<slug>-content`, generar keypair en `/srv/wiki-git/id_ed25519-<slug>`, añadir pubkey como deploy key con write, configurar Wiki.js admin → Storage → Git.
+
+## Roles de usuario
+
+| Rol | Permisos |
+|---|---|
+| `admin` | Gestión completa del sistema |
+| `editor` | Crear y editar contenido |
+| `viewer` | Solo lectura |
+
+## Agregar una nueva clínica a la red
+
+1. **Servidor**: nuevo stack Docker (wiki + wiki-db) en puerto distinto.
+2. **Caddy**: agregar bloque `nueva-clinica.urgpedia.cl` en `/etc/caddy/Caddyfile`.
+3. **Auth0**: agregar `https://nueva-clinica.urgpedia.cl/login/<AUTH0_STRATEGY_UUID>/callback` en Allowed Callback URLs.
+4. **Landing**: copiar bloque `.card` en `landing/index.html`, activar y actualizar datos.
+5. **Git sync**: crear repo `urgpedia-<slug>-content` + deploy key (ver sección Git Sync).
+6. **Auto-nav**: desplegar `auto_nav.py` con `SECTIONS` adaptado, agregar cron.
+
+Ver [docs/ESTADO-ACTUAL.md](docs/ESTADO-ACTUAL.md) para el estado técnico completo.
+
 ## Despliegue en producción
 
 Ver [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) para instrucciones detalladas.
 
 ## Seguridad
 
-- Las variables sensibles van en `.env` (no commitear)
-- Scripts con PII de usuarios están en `.gitignore`
-- GraphQL introspection deshabilitado en producción
+- Variables sensibles en `.env` (no commitear).
+- `.env.local` con IP y ruta de llave SSH (no commitear).
+- Scripts con PII de usuarios están en `.gitignore` (`scripts/create-users-auth0.py`, `*-users-*.py`, `*.csv`).
+- GraphQL introspection deshabilitado en producción.
+- Firewall Oracle Cloud: solo puertos 22, 80, 443 abiertos.
+- PostgreSQL no expuesto externamente (solo red interna Docker).
 
 ## Licencia
 
