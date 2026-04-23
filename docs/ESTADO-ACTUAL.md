@@ -119,7 +119,7 @@ this.servers.graph = new ApolloServer({
 
 ## 5. Wiki.js — configuración en base de datos
 
-Acceso: `docker exec wiki-db psql -U wikijs wikijs`
+Acceso: `docker exec wiki-db psql -U wikijs -d wiki`
 
 ### Auth settings
 ```sql
@@ -197,6 +197,34 @@ Copiar el bloque `.card.coming-soon`, eliminar la clase `coming-soon`, y actuali
 
 ---
 
+## 7b. Git Sync — Wiki.js → GitHub
+
+Wiki.js Git Storage module sincroniza el contenido del wiki (páginas, assets) con un repo privado en GitHub. Modo **sync** bidireccional (rama `main`, intervalo 10 min por defecto).
+
+| Parámetro | Valor |
+|---|---|
+| Repo | `git@github.com:nicoveraz/urgpedia-caspm-content.git` (privado) |
+| Rama | `main` |
+| Modo | Sync (bidireccional) |
+| Auth | SSH deploy key con write access (ID `149191083`) |
+| Llave privada (servidor) | `/srv/wiki-git/id_ed25519` |
+| Llave pública (deploy key) | `/srv/wiki-git/id_ed25519.pub` |
+| Author email | `wiki-git-sync@caspm.urgpedia.cl` |
+| Author name | `Wiki.js CASPM` |
+
+**Riesgo de sync bidireccional**: si la misma página se edita en wiki y en git entre syncs, Wiki.js conserva el timestamp más reciente y sobrescribe el otro lado. Recomendación: editar siempre desde el wiki, tratar el repo como backup + lectura.
+
+**Añadir una nueva clínica**:
+1. Crear repo privado `urgpedia-<slug>-content` en GitHub.
+2. Generar nuevo keypair en el servidor: `/srv/wiki-git/id_ed25519-<slug>`.
+3. Añadir pubkey como deploy key (write) en el nuevo repo.
+4. Configurar Wiki.js (de la nueva clínica) → Storage → Git con URL, rama, y el contenido de la llave privada.
+
+**Restaurar contenido desde el repo** (si el wiki pierde datos):
+Wiki.js admin → Storage → Git → **Import Everything**. Tira del repo y reescribe el contenido del wiki.
+
+---
+
 ## 8. Seguridad
 
 | Medida | Estado |
@@ -225,6 +253,7 @@ scripts/*-users-*.py
 - [ ] **Wiki.js Auto Login**: confirmar que está activo y que no quedan redirects manuales en Caddy o `login.pug`
 - [ ] **Nueva clínica**: nuevo stack Docker + subdominio en Caddy + callback Auth0 + card en landing
 - [x] **Volúmenes Docker**: login.pug y servers.js montados como volúmenes en docker-compose.yml (ver `overrides/`)
+- [x] **Git Sync**: Wiki.js → `urgpedia-caspm-content` (repo privado, SSH, modo sync, rama main)
 
 ---
 
@@ -240,7 +269,7 @@ docker logs wiki --tail 50         # Logs Wiki.js
 docker restart wiki                # Reiniciar Wiki.js
 
 # ── BASE DE DATOS ────────────────────────────────────
-docker exec wiki-db psql -U wikijs wikijs
+docker exec wiki-db psql -U wikijs -d wiki
 
 # ── CADDY ───────────────────────────────────────────
 sudo caddy validate --config /etc/caddy/Caddyfile
@@ -269,3 +298,4 @@ docker cp /tmp/archivo.pug wiki:/wiki/server/views/archivo.pug
 | SVG servidos localmente (no GitHub raw) | Independencia de GitHub; no falla si repo es privado |
 | GraphQL introspection deshabilitado | Evita exposición del schema de la API |
 | Archivos PII en `.gitignore` | `create-users-auth0.py` nunca fue commiteado (verificado) |
+| Git Sync a repo privado | Backup externo del contenido + posibilidad de rollback vía git history |
